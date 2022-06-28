@@ -44,7 +44,7 @@ use base58_monero::base58;
 
 use crate::consensus::encode::{self, Decodable};
 use crate::cryptonote::hash::keccak_256;
-use crate::network::{self, Network};
+use crate::network::{self, Network, NetworkByte};
 use crate::util::key::{KeyPair, PublicKey, ViewPair};
 
 use sealed::sealed;
@@ -93,13 +93,13 @@ impl AddressType {
         use AddressType::*;
         use Network::*;
         match net {
-            Mainnet => match byte {
-                18 => Ok(Standard),
-                19 => {
-                    let payment_id = PaymentId::from_slice(&bytes[65..73]);
+            Mainnet => match (byte, bytes[1]) {
+                (178, 32) => Ok(Standard),
+                (154, 53) => {
+                    let payment_id = PaymentId::from_slice(&bytes[66..74]);
                     Ok(Integrated(payment_id))
                 }
-                42 => Ok(SubAddress),
+                (176, 95) => Ok(SubAddress),
                 _ => Err(Error::InvalidMagicByte),
             },
             Testnet => match byte {
@@ -226,14 +226,17 @@ impl Address {
     pub fn from_bytes(bytes: &[u8]) -> Result<Address, Error> {
         let network = Network::from_u8(bytes[0])?;
         let addr_type = AddressType::from_slice(bytes, network)?;
-        let public_spend =
-            PublicKey::from_slice(&bytes[1..33]).map_err(|_| Error::InvalidFormat)?;
-        let public_view =
-            PublicKey::from_slice(&bytes[33..65]).map_err(|_| Error::InvalidFormat)?;
-
+        let netbytes_size = NetworkByte::number_of_bytes(network);
+        let public_spend = PublicKey::from_slice(&bytes[netbytes_size..32 + netbytes_size])
+            .map_err(|_| Error::InvalidFormat)?;
+        let public_view = PublicKey::from_slice(&bytes[32 + netbytes_size..64 + netbytes_size])
+            .map_err(|_| Error::InvalidFormat)?;
         let (checksum_bytes, checksum) = match addr_type {
-            AddressType::Standard | AddressType::SubAddress => (&bytes[0..65], &bytes[65..69]),
-            AddressType::Integrated(_) => (&bytes[0..73], &bytes[73..77]),
+            AddressType::Standard | AddressType::SubAddress => (
+                &bytes[0..64 + netbytes_size],
+                &bytes[64 + netbytes_size..68 + netbytes_size],
+            ),
+            AddressType::Integrated(_) => (&bytes[0..74], &bytes[74..78]),
         };
         let verify_checksum = keccak_256(checksum_bytes);
         if &verify_checksum[0..4] != checksum {
@@ -250,7 +253,8 @@ impl Address {
 
     /// Serialize the address as a vector of bytes.
     pub fn as_bytes(&self) -> Vec<u8> {
-        let mut bytes = vec![self.network.as_u8(&self.addr_type)];
+        let mut bytes = vec![];
+        bytes.extend_from_slice(&self.network.as_u8(&self.addr_type).as_vec());
         bytes.extend_from_slice(self.public_spend.as_bytes());
         bytes.extend_from_slice(self.public_view.as_bytes());
         if let AddressType::Integrated(payment_id) = &self.addr_type {
@@ -321,6 +325,7 @@ impl crate::consensus::encode::Encodable for Address {
     }
 }
 
+// TODO: Add tests for stage & testnet
 #[cfg(test)]
 mod tests {
     use crate::consensus::encode::{Decodable, Encodable};
@@ -331,17 +336,16 @@ mod tests {
     #[test]
     fn deserialize_address() {
         let pub_spend = PublicKey::from_slice(&[
-            226, 187, 17, 117, 6, 188, 105, 177, 58, 207, 205, 42, 205, 229, 251, 129, 118, 253,
-            21, 245, 49, 67, 36, 75, 62, 12, 80, 90, 244, 194, 108, 210,
+            56, 93, 20, 64, 236, 199, 20, 180, 215, 185, 240, 157, 76, 197, 78, 27, 209, 3, 203,
+            70, 77, 105, 16, 142, 48, 100, 115, 107, 58, 233, 221, 199,
         ])
         .unwrap();
         let pub_view = PublicKey::from_slice(&[
-            220, 115, 195, 55, 189, 88, 136, 78, 63, 32, 41, 33, 168, 205, 245, 3, 139, 234, 109,
-            64, 198, 179, 53, 108, 247, 77, 183, 25, 172, 59, 113, 115,
+            65, 193, 78, 9, 72, 8, 78, 159, 185, 244, 246, 193, 13, 12, 240, 178, 193, 248, 239,
+            33, 198, 159, 243, 17, 72, 62, 141, 204, 208, 25, 111, 248,
         ])
         .unwrap();
-
-        let address = "4ADT1BtbxqEWeMKp9GgPr2NeyJXXtNxvoDawpyA4WpzFcGcoHUvXeijE66DNfohE9r1bQYaBiQjEtKE7CtkTdLwiDznFzra";
+        let address = "Wo3YvSv2rqk4TswCUpHHwzE4kc9HxvZax3mcHZBtC56Ge6XcSkej5JXE9kY6DFgU19hG5LU2PjE9khf4SXXyfGHn1xkzYoWsk";
         let add = Address::from_str(address);
         assert_eq!(
             Ok(Address::standard(Network::Mainnet, pub_spend, pub_view)),
@@ -366,18 +370,18 @@ mod tests {
     #[test]
     fn deserialize_integrated_address() {
         let pub_spend = PublicKey::from_slice(&[
-            17, 81, 127, 230, 166, 35, 81, 36, 161, 94, 154, 206, 60, 98, 195, 62, 12, 11, 234,
-            133, 228, 196, 77, 3, 68, 188, 84, 78, 94, 109, 238, 44,
+            171, 162, 233, 87, 229, 250, 158, 156, 25, 187, 161, 81, 56, 122, 81, 83, 17, 169, 228,
+            121, 208, 253, 233, 196, 244, 89, 253, 248, 77, 86, 78, 251,
         ])
         .unwrap();
         let pub_view = PublicKey::from_slice(&[
-            115, 212, 211, 204, 198, 30, 73, 70, 235, 52, 160, 200, 39, 215, 134, 239, 249, 129,
-            47, 156, 14, 116, 18, 191, 112, 207, 139, 208, 54, 59, 92, 115,
+            82, 123, 6, 39, 245, 166, 42, 115, 238, 61, 40, 135, 197, 49, 193, 169, 235, 157, 127,
+            236, 22, 251, 247, 54, 184, 236, 60, 244, 20, 191, 147, 176,
         ])
         .unwrap();
-        let payment_id = PaymentId([88, 118, 184, 183, 41, 150, 255, 151]);
+        let payment_id = PaymentId([170, 185, 129, 214, 9, 100, 93, 195]);
 
-        let address = "4Byr22j9M2878Mtyb3fEPcBNwBZf5EXqn1Yi6VzR46618SFBrYysab2Cs1474CVDbsh94AJq7vuV3Z2DRq4zLcY3LHzo1Nbv3d8J6VhvCV";
+        let address = "So2Z5hH3RnRTXiNyYMJqkuEbx4onpQ3vCg6rd776aTXjEDDrmeZhENq86r4Ut7fjXEZPnJDza7sDUiMHRUNzWKAvRhnBdmEu9bZ1oh6U1hnX";
         let add = Address::from_str(address);
         assert_eq!(
             Ok(Address::integrated(
@@ -393,17 +397,17 @@ mod tests {
     #[test]
     fn deserialize_sub_address() {
         let pub_spend = PublicKey::from_slice(&[
-            212, 104, 103, 28, 131, 98, 226, 228, 37, 244, 133, 145, 213, 157, 184, 232, 6, 146,
-            127, 69, 187, 95, 33, 143, 9, 102, 181, 189, 230, 223, 231, 7,
+            159, 84, 131, 221, 26, 253, 171, 45, 177, 66, 136, 23, 73, 98, 112, 165, 192, 97, 149,
+            190, 75, 156, 140, 215, 229, 61, 165, 60, 28, 10, 11, 202,
         ])
         .unwrap();
         let pub_view = PublicKey::from_slice(&[
-            154, 155, 57, 25, 23, 70, 165, 134, 222, 126, 85, 60, 127, 96, 21, 243, 108, 152, 150,
-            87, 66, 59, 161, 121, 206, 130, 170, 233, 69, 102, 128, 103,
+            41, 52, 237, 179, 210, 253, 52, 104, 18, 3, 1, 59, 249, 212, 246, 134, 208, 199, 48,
+            239, 150, 166, 61, 39, 235, 1, 206, 217, 202, 70, 119, 88,
         ])
         .unwrap();
 
-        let address = "8AW7SotwFrqfAKnibspuuhfowW4g3asvpQvdrTmPcpNr2GmXPtBBSxUPZQATAt8Vw2hiX9GDyxB4tMNgHjwt8qYsCeFDVvn";
+        let address = "WW3ZSaMkez8VdeTGsj5CW5KqpeeRnzLioQZMhR8xoaZf2yNjjqPXc3E9mQifiGPQW7iEcnnCJUkfPBEHmcjKhrTX22RwPkAFY";
         let add = Address::from_str(address);
         assert_eq!(
             Ok(Address::subaddress(Network::Mainnet, pub_spend, pub_view)),
@@ -413,15 +417,15 @@ mod tests {
 
     #[test]
     fn deserialize_address_with_paymentid() {
-        let address = "4Byr22j9M2878Mtyb3fEPcBNwBZf5EXqn1Yi6VzR46618SFBrYysab2Cs1474CVDbsh94AJq7vuV3Z2DRq4zLcY3LHzo1Nbv3d8J6VhvCV";
+        let address = "So2Z5hH3RnRTXiNyYMJqkuEbx4onpQ3vCg6rd776aTXjEDDrmeZhENq86r4Ut7fjXEZPnJDza7sDUiMHRUNzWKAvRhnBdmEu9bZ1oh6U1hnX";
         let addr = Address::from_str(address).unwrap();
-        let payment_id = PaymentId([88, 118, 184, 183, 41, 150, 255, 151]);
+        let payment_id = PaymentId([170, 185, 129, 214, 9, 100, 93, 195]);
         assert_eq!(addr.addr_type, AddressType::Integrated(payment_id));
     }
 
     #[test]
     fn serialize_address() {
-        let address = "4ADT1BtbxqEWeMKp9GgPr2NeyJXXtNxvoDawpyA4WpzFcGcoHUvXeijE66DNfohE9r1bQYaBiQjEtKE7CtkTdLwiDznFzra";
+        let address = "Wo3YvSv2rqk4TswCUpHHwzE4kc9HxvZax3mcHZBtC56Ge6XcSkej5JXE9kY6DFgU19hG5LU2PjE9khf4SXXyfGHn1xkzYoWsk";
         let add = Address::from_str(address).unwrap();
         let bytes = base58::decode(address).unwrap();
         assert_eq!(bytes, add.as_bytes());
@@ -429,7 +433,7 @@ mod tests {
 
     #[test]
     fn serialize_integrated_address() {
-        let address = "4Byr22j9M2878Mtyb3fEPcBNwBZf5EXqn1Yi6VzR46618SFBrYysab2Cs1474CVDbsh94AJq7vuV3Z2DRq4zLcY3LHzo1Nbv3d8J6VhvCV";
+        let address = "So2Z5hH3RnRTXiNyYMJqkuEbx4onpQ3vCg6rd776aTXjEDDrmeZhENq86r4Ut7fjXEZPnJDza7sDUiMHRUNzWKAvRhnBdmEu9bZ1oh6U1hnX";
         let add = Address::from_str(address).unwrap();
         let bytes = base58::decode(address).unwrap();
         assert_eq!(bytes, add.as_bytes());
@@ -437,7 +441,7 @@ mod tests {
 
     #[test]
     fn serialize_to_string() {
-        let address = "4Byr22j9M2878Mtyb3fEPcBNwBZf5EXqn1Yi6VzR46618SFBrYysab2Cs1474CVDbsh94AJq7vuV3Z2DRq4zLcY3LHzo1Nbv3d8J6VhvCV";
+        let address = "So2Z5hH3RnRTXiNyYMJqkuEbx4onpQ3vCg6rd776aTXjEDDrmeZhENq86r4Ut7fjXEZPnJDza7sDUiMHRUNzWKAvRhnBdmEu9bZ1oh6U1hnX";
         let add = Address::from_str(address).unwrap();
         assert_eq!(address, add.to_string());
     }

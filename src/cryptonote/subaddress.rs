@@ -190,11 +190,11 @@ mod tests {
     #[allow(non_snake_case)]
     fn get_subaddress_test() {
         let a = PrivateKey::from_str(
-            "77916d0cd56ed1920aef6ca56d8a41bac915b68e4c46a589e0956e27a7b77404",
+            "43301e2795420f3772143db0b40f0ea8dce2d79354c68679a0dbdfd443bd8d03",
         )
         .unwrap();
         let b = PrivateKey::from_str(
-            "8163466f1883598e6dd14027b8da727057165da91485834314f5500a65846f09",
+            "c299e05c23dd05e47f8f024fe8ed2c5db69bfa77cf332d2b242ce23fc9508f09",
         )
         .unwrap();
         let B = PublicKey::from_private_key(&b);
@@ -202,11 +202,11 @@ mod tests {
         let viewpair = ViewPair { view: a, spend: B };
 
         let index = Index {
-            major: 2,
-            minor: 18,
+            major: 1,
+            minor: 14,
         };
         let address = get_subaddress(&viewpair, index, Some(Network::Mainnet));
 
-        assert_eq!("89pMNxzcCo5LAPZDX4qaTeanA6ZiS3VRdUbeKHzbDZkD1Q3YsDDfmXbT2zyjLeHWuuN4vxKne8kNpjH3cMk7nmhwSALCxsd", address.to_string());
+        assert_eq!("WW2pXdzcsEiY5VwbVwXuZvgmK4rP3nfWjZ6zHEQ5RevYDHWzX74GF6sCkfeADhN89qZpansMYzhNk9HnufWW5ZSx2EFd5g5cR", address.to_string());
     }
 }
