@@ -26,7 +26,7 @@ use crate::cryptonote::hash;
 use crate::util::ringct::Signature;
 use sealed::sealed;
 #[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
+use serde_crate::{Deserialize, Serialize};
 use std::{fmt, io};
 
 /// Enum for pre or post Vote by block

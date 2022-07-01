@@ -495,7 +495,8 @@ impl_consensus_encoding!(Bulletproof, A, S, T1, T2, taux, mu, L, R, a, b, t);
 /// BulletproofPlus format.
 #[derive(Debug, Clone)]
 #[allow(non_snake_case)]
-#[cfg_attr(feature = "serde_support", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", serde(crate = "serde_crate"))]
 pub struct BulletproofPlus {
     /// A value.
     pub A: Key,
