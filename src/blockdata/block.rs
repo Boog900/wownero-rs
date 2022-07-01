@@ -35,6 +35,8 @@ use std::{fmt, io};
 /// pre: major_version < 18
 ///
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", serde(crate = "serde_crate"))]
 pub enum Vote {
     /// Pre vote by block
     PreVote,
@@ -96,6 +98,8 @@ impl Vote {
 /// pre: major_version < 18
 ///
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", serde(crate = "serde_crate"))]
 pub enum MinerSig {
     /// Pre miner sig
     PreSig,

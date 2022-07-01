@@ -22,10 +22,10 @@
 //!
 //! ```rust
 //! use std::str::FromStr;
-//! use monero::{Address, Network};
-//! use monero::util::address::{AddressType, Error};
+//! use wownero::{Address, Network};
+//! use wownero::util::address::{AddressType, Error};
 //!
-//! let addr = "4ADT1BtbxqEWeMKp9GgPr2NeyJXXtNxvoDawpyA4WpzFcGcoHUvXeijE66DNfohE9r1bQYaBiQjEtKE7CtkTdLwiDznFzra";
+//! let addr = "Wo3YvSv2rqk4TswCUpHHwzE4kc9HxvZax3mcHZBtC56Ge6XcSkej5JXE9kY6DFgU19hG5LU2PjE9khf4SXXyfGHn1xkzYoWsk";
 //! let address = Address::from_str(addr)?;
 //!
 //! assert_eq!(address.network, Network::Mainnet);
