@@ -15,12 +15,12 @@
 
 #![cfg(any(feature = "serde"))]
 
+use serde_crate::{Deserialize, Serialize};
 use wownero::util::amount::{
     serde::{SerdeAmount, SerdeAmountForOpt},
     SignedAmount,
 };
 use wownero::Amount;
-use serde_crate::{Deserialize, Serialize};
 
 #[test]
 fn serde_amount_and_signed_amount() {

@@ -13,13 +13,13 @@
 // copies or substantial portions of the Software.
 //
 
+use std::str::FromStr;
 use wownero::blockdata::transaction::{
     ExtraField, Transaction, TransactionPrefix, TxIn, TxOut, TxOutTarget,
 };
 use wownero::consensus::encode::{deserialize, serialize, VarInt};
 use wownero::cryptonote::hash::Hashable;
 use wownero::util::key::PublicKey;
-use std::str::FromStr;
 
 // Rct type 0
 #[test]
