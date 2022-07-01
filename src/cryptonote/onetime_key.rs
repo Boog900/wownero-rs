@@ -24,10 +24,10 @@
 //!
 //! ```rust
 //! use std::str::FromStr;
-//! use monero::{PublicKey, PrivateKey};
-//! use monero::cryptonote::onetime_key::SubKeyChecker;
-//! use monero::cryptonote::subaddress::Index;
-//! use monero::util::key::ViewPair;
+//! use wownero::{PublicKey, PrivateKey};
+//! use wownero::cryptonote::onetime_key::SubKeyChecker;
+//! use wownero::cryptonote::subaddress::Index;
+//! use wownero::util::key::ViewPair;
 //!
 //! let view = PrivateKey::from_str("bcfdda53205318e1c14fa0ddca1a45df363bb427972981d0249d0f4652a7df07").unwrap();
 //! let secret_spend = PrivateKey::from_str("e5f4301d32f3bdaef814a835a18aaaa24b13cc76cf01a832a7852faf9322e907").unwrap();
