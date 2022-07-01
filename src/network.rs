@@ -29,6 +29,32 @@ pub enum Error {
     InvalidMagicByte,
 }
 
+/// Wownero has a different amount of bytes depending if
+/// you are using Mainnet(2) or not(1)  :) :) :)
+///
+pub enum NetworkByte {
+    /// Mainnet uses 2 bytes for net byte
+    Mainnet(u8, u8),
+    /// Stagenet && Testnet use 1 byte
+    NotMainnet(u8),
+}
+
+impl NetworkByte {
+    /// Turns the network byte(s) into a Vec
+    pub fn as_vec(self) -> Vec<u8> {
+        match self {
+            NetworkByte::Mainnet(x, y) => vec![x, y],
+            NetworkByte::NotMainnet(x) => vec![x],
+        }
+    }
+    /// returns the amount of Netbytes for each net
+    pub fn number_of_bytes(network: Network) -> usize {
+        match network {
+            Network::Mainnet => 2,
+            Network::Stagenet | Network::Testnet => 1,
+        }
+    }
+}
 /// The list of the existing Monero networks.
 ///
 /// Network implements [`Default`] and returns [`Network::Mainnet`].
@@ -49,24 +75,24 @@ impl Network {
     /// Get the associated magic byte given an address type.
     ///
     /// **Source:** [`monero/src/cryptonote_config.h`](https://github.com/monero-project/monero/blob/159c78758af0a0af9df9a4f9ab81888f9322e9be/src/cryptonote_config.h#L190-L239)
-    pub fn as_u8(self, addr_type: &AddressType) -> u8 {
+    pub fn as_u8(self, addr_type: &AddressType) -> NetworkByte {
         use AddressType::*;
         use Network::*;
         match self {
             Mainnet => match addr_type {
-                Standard => 18,
-                Integrated(_) => 19,
-                SubAddress => 42,
+                Standard => NetworkByte::Mainnet(178, 32),
+                Integrated(_) => NetworkByte::Mainnet(154, 53),
+                SubAddress => NetworkByte::Mainnet(176, 95),
             },
             Testnet => match addr_type {
-                Standard => 53,
-                Integrated(_) => 54,
-                SubAddress => 63,
+                Standard => NetworkByte::NotMainnet(53),
+                Integrated(_) => NetworkByte::NotMainnet(54),
+                SubAddress => NetworkByte::NotMainnet(63),
             },
             Stagenet => match addr_type {
-                Standard => 24,
-                Integrated(_) => 25,
-                SubAddress => 36,
+                Standard => NetworkByte::NotMainnet(24),
+                Integrated(_) => NetworkByte::NotMainnet(25),
+                SubAddress => NetworkByte::NotMainnet(36),
             },
         }
     }
@@ -77,7 +103,7 @@ impl Network {
     pub fn from_u8(byte: u8) -> Result<Network, Error> {
         use Network::*;
         match byte {
-            18 | 19 | 42 => Ok(Mainnet),
+            178 | 154 | 176 => Ok(Mainnet),
             53 | 54 | 63 => Ok(Testnet),
             24 | 25 | 36 => Ok(Stagenet),
             _ => Err(Error::InvalidMagicByte),

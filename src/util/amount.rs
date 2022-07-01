@@ -31,27 +31,27 @@ use thiserror::Error;
 /// A set of denominations in which amounts can be expressed.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum Denomination {
-    /// XMR
-    Monero,
-    /// millinero
-    Millinero,
-    /// micronero
-    Micronero,
-    /// nanonero
-    Nanonero,
-    /// piconero
-    Piconero,
+    /// WOW
+    Wownero,
+    /// Very wow
+    Verywow,
+    /// Much wow
+    Muchwow,
+    /// Such wow
+    Suchwow,
+    /// Dust
+    Dust,
 }
 
 impl Denomination {
-    /// The number of decimal places more than a piconero.
+    /// The number of decimal places more than a Dust.
     fn precision(self) -> i32 {
         match self {
-            Denomination::Monero => -12,
-            Denomination::Millinero => -9,
-            Denomination::Micronero => -6,
-            Denomination::Nanonero => -3,
-            Denomination::Piconero => 0,
+            Denomination::Wownero => -11,
+            Denomination::Verywow => -8,
+            Denomination::Muchwow => -5,
+            Denomination::Suchwow => -2,
+            Denomination::Dust => 0,
         }
     }
 }
@@ -59,11 +59,11 @@ impl Denomination {
 impl fmt::Display for Denomination {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(match *self {
-            Denomination::Monero => "XMR",
-            Denomination::Millinero => "millinero",
-            Denomination::Micronero => "micronero",
-            Denomination::Nanonero => "nanonero",
-            Denomination::Piconero => "piconero",
+            Denomination::Wownero => "WOW",
+            Denomination::Verywow => "Verywow",
+            Denomination::Muchwow => "Muchwow",
+            Denomination::Suchwow => "Suchwow",
+            Denomination::Dust => "Dust",
         })
     }
 }
@@ -73,11 +73,11 @@ impl FromStr for Denomination {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "XMR" => Ok(Denomination::Monero),
-            "millinero" => Ok(Denomination::Millinero),
-            "micronero" => Ok(Denomination::Micronero),
-            "nanonero" => Ok(Denomination::Nanonero),
-            "piconero" => Ok(Denomination::Piconero),
+            "WOW" => Ok(Denomination::Wownero),
+            "Verywow" => Ok(Denomination::Verywow),
+            "Muchwow" => Ok(Denomination::Muchwow),
+            "Suchwow" => Ok(Denomination::Suchwow),
+            "Dust" => Ok(Denomination::Dust),
             d => Err(ParsingError::UnknownDenomination(d.to_owned())),
         }
     }
@@ -113,9 +113,9 @@ fn is_too_precise(s: &str, precision: usize) -> bool {
     s.contains('.') || precision >= s.len() || s.chars().rev().take(precision).any(|d| d != '0')
 }
 
-/// Parse decimal string in the given denomination into a piconero value and a bool indicator for a
+/// Parse decimal string in the given denomination into a dust value and a bool indicator for a
 /// negative amount.
-fn parse_signed_to_piconero(mut s: &str, denom: Denomination) -> Result<(bool, u64), ParsingError> {
+fn parse_signed_to_dust(mut s: &str, denom: Denomination) -> Result<(bool, u64), ParsingError> {
     if s.is_empty() {
         return Err(ParsingError::InvalidFormat);
     }
@@ -132,7 +132,7 @@ fn parse_signed_to_piconero(mut s: &str, denom: Denomination) -> Result<(bool, u
     }
 
     let max_decimals = {
-        // The difference in precision between native (piconero) and desired denomination.
+        // The difference in precision between native (Dust) and desired denomination.
         let precision_diff = -denom.precision();
         if precision_diff < 0 {
             // If precision diff is negative, this means we are parsing
@@ -151,7 +151,7 @@ fn parse_signed_to_piconero(mut s: &str, denom: Denomination) -> Result<(bool, u
     };
 
     let mut decimals = None;
-    let mut value: u64 = 0; // as piconero
+    let mut value: u64 = 0; // as Dust
     for c in s.chars() {
         match c {
             '0'..='9' => {
@@ -191,9 +191,9 @@ fn parse_signed_to_piconero(mut s: &str, denom: Denomination) -> Result<(bool, u
     Ok((is_negative, value))
 }
 
-/// Format the given piconero amount in the given denomination without including the denomination.
-fn fmt_piconero_in(
-    piconero: u64,
+/// Format the given Dust amount in the given denomination without including the denomination.
+fn fmt_dust_in(
+    dust: u64,
     negative: bool,
     f: &mut dyn fmt::Write,
     denom: Denomination,
@@ -207,12 +207,12 @@ fn fmt_piconero_in(
         Ordering::Greater => {
             // add zeroes in the end
             let width = precision as usize;
-            write!(f, "{}{:0width$}", piconero, 0, width = width)?;
+            write!(f, "{}{:0width$}", dust, 0, width = width)?;
         }
         Ordering::Less => {
             // need to inject a comma in the number
             let nb_decimals = precision.abs() as usize;
-            let real = format!("{:0width$}", piconero, width = nb_decimals);
+            let real = format!("{:0width$}", dust, width = nb_decimals);
             if real.len() == nb_decimals {
                 write!(f, "0.{}", &real[real.len() - nb_decimals..])?;
             } else {
@@ -224,14 +224,14 @@ fn fmt_piconero_in(
                 )?;
             }
         }
-        Ordering::Equal => write!(f, "{}", piconero)?,
+        Ordering::Equal => write!(f, "{}", dust)?,
     }
     Ok(())
 }
 
-/// Represent an unsigned quantity of Monero, internally as piconero.
+/// Represent an unsigned quantity of Wownero, internally as Dust.
 ///
-/// The [`Amount`] type can be used to express Monero amounts that supports arithmetic and
+/// The [`Amount`] type can be used to express Wownero amounts that supports arithmetic and
 /// conversion to various denominations.
 ///
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -240,18 +240,18 @@ pub struct Amount(u64);
 impl Amount {
     /// The zero amount.
     pub const ZERO: Amount = Amount(0);
-    /// Exactly one piconero.
-    pub const ONE_PICO: Amount = Amount(1);
+    /// Exactly one Dust.
+    pub const ONE_DUST: Amount = Amount(1);
     /// Exactly one monero.
-    pub const ONE_XMR: Amount = Amount(1_000_000_000_000);
+    pub const ONE_WOW: Amount = Amount(100_000_000_000);
 
-    /// Create an [`Amount`] with piconero precision and the given number of piconero.
-    pub fn from_pico(piconero: u64) -> Amount {
-        Amount(piconero)
+    /// Create an [`Amount`] with Dust precision and the given number of Dust.
+    pub fn from_dust(dust: u64) -> Amount {
+        Amount(dust)
     }
 
-    /// Get the number of piconeros in this [`Amount`].
-    pub fn as_pico(self) -> u64 {
+    /// Get the number of Dusts in this [`Amount`].
+    pub fn as_dust(self) -> u64 {
         self.0
     }
 
@@ -266,8 +266,8 @@ impl Amount {
     }
 
     /// Convert from a value expressing moneros to an [`Amount`].
-    pub fn from_xmr(xmr: f64) -> Result<Amount, ParsingError> {
-        Amount::from_float_in(xmr, Denomination::Monero)
+    pub fn from_wow(wow: f64) -> Result<Amount, ParsingError> {
+        Amount::from_float_in(wow, Denomination::Wownero)
     }
 
     /// Parse a decimal string as a value in the given denomination.
@@ -275,14 +275,14 @@ impl Amount {
     /// Note: This only parses the value string. If you want to parse a value with denomination,
     /// use [`FromStr`].
     pub fn from_str_in(s: &str, denom: Denomination) -> Result<Amount, ParsingError> {
-        let (negative, piconero) = parse_signed_to_piconero(s, denom)?;
+        let (negative, dust) = parse_signed_to_dust(s, denom)?;
         if negative {
             return Err(ParsingError::Negative);
         }
-        if piconero > i64::max_value() as u64 {
+        if dust > i64::max_value() as u64 {
             return Err(ParsingError::TooBig);
         }
-        Ok(Amount::from_pico(piconero))
+        Ok(Amount::from_dust(dust))
     }
 
     /// Parses amounts with denomination suffix like they are produced with
@@ -306,13 +306,13 @@ impl Amount {
         f64::from_str(&self.to_string_in(denom)).unwrap()
     }
 
-    /// Express this [`Amount`] as a floating-point value in Monero.
+    /// Express this [`Amount`] as a floating-point value in Wownero.
     ///
-    /// Equivalent to `to_float_in(Denomination::Monero)`.
+    /// Equivalent to `to_float_in(Denomination::Wownero)`.
     ///
     /// Please be aware of the risk of using floating-point numbers.
-    pub fn as_xmr(self) -> f64 {
-        self.to_float_in(Denomination::Monero)
+    pub fn as_wow(self) -> f64 {
+        self.to_float_in(Denomination::Wownero)
     }
 
     /// Convert this [`Amount`] in floating-point notation with a given denomination. Can return
@@ -332,7 +332,7 @@ impl Amount {
     ///
     /// Does not include the denomination.
     pub fn fmt_value_in(self, f: &mut dyn fmt::Write, denom: Denomination) -> fmt::Result {
-        fmt_piconero_in(self.as_pico(), false, f, denom)
+        fmt_dust_in(self.as_dust(), false, f, denom)
     }
 
     /// Get a string number of this [`Amount`] in the given denomination.
@@ -389,10 +389,10 @@ impl Amount {
 
     /// Convert to a signed amount.
     pub fn to_signed(self) -> Result<SignedAmount, ParsingError> {
-        if self.as_pico() > SignedAmount::max_value().as_pico() as u64 {
+        if self.as_dust() > SignedAmount::max_value().as_dust() as u64 {
             Err(ParsingError::TooBig)
         } else {
-            Ok(SignedAmount::from_pico(self.as_pico() as i64))
+            Ok(SignedAmount::from_dust(self.as_dust() as i64))
         }
     }
 }
@@ -405,16 +405,16 @@ impl default::Default for Amount {
 
 impl fmt::Debug for Amount {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Amount({:.12} XMR)", self.as_xmr())
+        write!(f, "Amount({:.12} WOW)", self.as_wow())
     }
 }
 
 // No one should depend on a binding contract for Display for this type.
-// Just using Monero denominated string.
+// Just using Wownero denominated string.
 impl fmt::Display for Amount {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt_value_in(f, Denomination::Monero)?;
-        write!(f, " {}", Denomination::Monero)
+        self.fmt_value_in(f, Denomination::Wownero)?;
+        write!(f, " {}", Denomination::Wownero)
     }
 }
 
@@ -496,9 +496,9 @@ impl FromStr for Amount {
     }
 }
 
-/// Represent an signed quantity of Monero, internally as signed monero.
+/// Represent an signed quantity of Wownero, internally as signed monero.
 ///
-/// The [`SignedAmount`] type can be used to express Monero amounts that supports arithmetic and
+/// The [`SignedAmount`] type can be used to express Wownero amounts that supports arithmetic and
 /// conversion to various denominations.
 ///
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -507,18 +507,18 @@ pub struct SignedAmount(i64);
 impl SignedAmount {
     /// The zero amount.
     pub const ZERO: SignedAmount = SignedAmount(0);
-    /// Exactly one piconero.
-    pub const ONE_PICO: SignedAmount = SignedAmount(1);
+    /// Exactly one Dust.
+    pub const ONE_DUST: SignedAmount = SignedAmount(1);
     /// Exactly one monero.
-    pub const ONE_XMR: SignedAmount = SignedAmount(1_000_000_000_000);
+    pub const ONE_WOW: SignedAmount = SignedAmount(100_000_000_000);
 
-    /// Create an [`SignedAmount`] with piconero precision and the given number of piconeros.
-    pub fn from_pico(piconero: i64) -> SignedAmount {
-        SignedAmount(piconero)
+    /// Create an [`SignedAmount`] with Dust precision and the given number of Dusts.
+    pub fn from_dust(dust: i64) -> SignedAmount {
+        SignedAmount(dust)
     }
 
-    /// Get the number of piconeros in this [`SignedAmount`].
-    pub fn as_pico(self) -> i64 {
+    /// Get the number of Dusts in this [`SignedAmount`].
+    pub fn as_dust(self) -> i64 {
         self.0
     }
 
@@ -533,8 +533,8 @@ impl SignedAmount {
     }
 
     /// Convert from a value expressing moneros to an [`SignedAmount`].
-    pub fn from_xmr(xmr: f64) -> Result<SignedAmount, ParsingError> {
-        SignedAmount::from_float_in(xmr, Denomination::Monero)
+    pub fn from_wow(wow: f64) -> Result<SignedAmount, ParsingError> {
+        SignedAmount::from_float_in(wow, Denomination::Wownero)
     }
 
     /// Parse a decimal string as a value in the given denomination.
@@ -542,13 +542,13 @@ impl SignedAmount {
     /// Note: This only parses the value string.  If you want to parse a value with denomination,
     /// use [`FromStr`].
     pub fn from_str_in(s: &str, denom: Denomination) -> Result<SignedAmount, ParsingError> {
-        let (negative, piconero) = parse_signed_to_piconero(s, denom)?;
-        if piconero > i64::max_value() as u64 {
+        let (negative, dust) = parse_signed_to_dust(s, denom)?;
+        if dust > i64::max_value() as u64 {
             return Err(ParsingError::TooBig);
         }
         Ok(match negative {
-            true => SignedAmount(-(piconero as i64)),
-            false => SignedAmount(piconero as i64),
+            true => SignedAmount(-(dust as i64)),
+            false => SignedAmount(dust as i64),
         })
     }
 
@@ -574,13 +574,13 @@ impl SignedAmount {
         f64::from_str(&self.to_string_in(denom)).unwrap()
     }
 
-    /// Express this [`SignedAmount`] as a floating-point value in Monero.
+    /// Express this [`SignedAmount`] as a floating-point value in Wownero.
     ///
-    /// Equivalent to `to_float_in(Denomination::Monero)`.
+    /// Equivalent to `to_float_in(Denomination::Wownero)`.
     ///
     /// Please be aware of the risk of using floating-point numbers.
-    pub fn as_xmr(self) -> f64 {
-        self.to_float_in(Denomination::Monero)
+    pub fn as_wow(self) -> f64 {
+        self.to_float_in(Denomination::Wownero)
     }
 
     /// Convert this [`SignedAmount`] in floating-point notation with a given denomination.
@@ -597,15 +597,15 @@ impl SignedAmount {
     ///
     /// Does not include the denomination.
     pub fn fmt_value_in(self, f: &mut dyn fmt::Write, denom: Denomination) -> fmt::Result {
-        let picos = self
-            .as_pico()
+        let dusts = self
+            .as_dust()
             .checked_abs()
             .map(|a: i64| a as u64)
             .unwrap_or_else(|| {
                 // We could also hard code this into `9223372036854775808`
-                u64::max_value() - self.as_pico() as u64 + 1
+                u64::max_value() - self.as_dust() as u64 + 1
             });
-        fmt_piconero_in(picos, self.is_negative(), f, denom)
+        fmt_dust_in(dusts, self.is_negative(), f, denom)
     }
 
     /// Get a string number of this [`SignedAmount`] in the given denomination.
@@ -707,7 +707,7 @@ impl SignedAmount {
         if self.is_negative() {
             Err(ParsingError::Negative)
         } else {
-            Ok(Amount::from_pico(self.as_pico() as u64))
+            Ok(Amount::from_dust(self.as_dust() as u64))
         }
     }
 }
@@ -720,16 +720,16 @@ impl default::Default for SignedAmount {
 
 impl fmt::Debug for SignedAmount {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "SignedAmount({:.12} XMR)", self.as_xmr())
+        write!(f, "SignedAmount({:.12} WOW)", self.as_wow())
     }
 }
 
 // No one should depend on a binding contract for Display for this type.
-// Just using Monero denominated string.
+// Just using Wownero denominated string.
 impl fmt::Display for SignedAmount {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.fmt_value_in(f, Denomination::Monero)?;
-        write!(f, " {}", Denomination::Monero)
+        self.fmt_value_in(f, Denomination::Wownero)?;
+        write!(f, " {}", Denomination::Wownero)
     }
 }
 
@@ -814,22 +814,21 @@ impl FromStr for SignedAmount {
     }
 }
 
-#[cfg(feature = "serde")]
-#[cfg_attr(docsrs, doc(cfg(feature = "serde")))]
-pub mod serde {
+#[cfg(feature = "serde_support")]
+#[cfg_attr(docsrs, doc(cfg(feature = "serde_support")))]
+pub mod serde_impl {
     //! This module adds serde serialization and deserialization support for Amounts.
     //! Since there is not a default way to serialize and deserialize Amounts, multiple
     //! ways are supported and it's up to the user to decide which serialiation to use.
     //! The provided modules can be used as follows:
     //!
-    //! ```rust
-    //! use serde_crate::{Serialize, Deserialize};
+    //! ```rust,ignore
+    //! use serde::{Serialize, Deserialize};
     //! use monero::Amount;
     //!
     //! #[derive(Serialize, Deserialize)]
-    //! # #[serde(crate = "serde_crate")]
     //! pub struct HasAmount {
-    //!     #[serde(with = "monero::util::amount::serde::as_xmr")]
+    //!     #[serde(with = "monero::util::amount::serde_impl::as_xmr")]
     //!     pub amount: Amount,
     //! }
     //! ```
@@ -839,7 +838,7 @@ pub mod serde {
 
     use super::{Amount, Denomination, SignedAmount};
     use sealed::sealed;
-    use serde_crate::{Deserialize, Deserializer, Serialize, Serializer};
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
     #[sealed]
     /// This trait is used only to avoid code duplication and naming collisions of the different
@@ -878,9 +877,11 @@ pub mod serde {
             String::serialize(&self.to_string_in(Denomination::Monero), s)
         }
         fn des_xmr<'d, D: Deserializer<'d>>(d: D) -> Result<Self, D::Error> {
-            use serde_crate::de::Error;
-            Amount::from_str_in(&String::deserialize(d)?, Denomination::Monero)
-                .map_err(D::Error::custom)
+            use serde::de::Error;
+            Ok(
+                Amount::from_str_in(&String::deserialize(d)?, Denomination::Monero)
+                    .map_err(D::Error::custom)?,
+            )
         }
     }
 
@@ -909,9 +910,11 @@ pub mod serde {
             String::serialize(&self.to_string_in(Denomination::Monero), s)
         }
         fn des_xmr<'d, D: Deserializer<'d>>(d: D) -> Result<Self, D::Error> {
-            use serde_crate::de::Error;
-            SignedAmount::from_str_in(&String::deserialize(d)?, Denomination::Monero)
-                .map_err(D::Error::custom)
+            use serde::de::Error;
+            Ok(
+                SignedAmount::from_str_in(&String::deserialize(d)?, Denomination::Monero)
+                    .map_err(D::Error::custom)?,
+            )
         }
     }
 
@@ -933,12 +936,12 @@ pub mod serde {
         #![allow(missing_docs)]
 
         //! Serialize and deserialize [`Amount`] as real numbers denominated in piconero.
-        //! Use with `#[serde(with = "amount::serde::as_pico")]`.
+        //! Use with `#[serde(with = "amount::serde_impl::as_pico")]`.
         //!
         //! [`Amount`]: crate::util::amount::Amount
 
         use super::SerdeAmount;
-        use serde_crate::{Deserializer, Serializer};
+        use serde::{Deserializer, Serializer};
 
         pub fn serialize<A: SerdeAmount, S: Serializer>(a: &A, s: S) -> Result<S::Ok, S::Error> {
             a.ser_pico(s)
@@ -954,7 +957,7 @@ pub mod serde {
             use super::super::SerdeAmountForOpt;
             use core::fmt;
             use core::marker::PhantomData;
-            use serde_crate::{de, Deserializer, Serializer};
+            use serde::{de, Deserializer, Serializer};
 
             pub fn serialize<A: SerdeAmountForOpt, S: Serializer>(
                 a: &Option<A>,
@@ -1001,12 +1004,12 @@ pub mod serde {
         #![allow(missing_docs)]
 
         //! Serialize and deserialize [`Amount`] as JSON strings denominated in XMR.
-        //! Use with `#[serde(with = "amount::serde::as_xmr")]`.
+        //! Use with `#[serde(with = "amount::serde_impl::as_xmr")]`.
         //!
         //! [`Amount`]: crate::util::amount::Amount
 
         use super::SerdeAmount;
-        use serde_crate::{Deserializer, Serializer};
+        use serde::{Deserializer, Serializer};
 
         pub fn serialize<A: SerdeAmount, S: Serializer>(a: &A, s: S) -> Result<S::Ok, S::Error> {
             a.ser_xmr(s)
@@ -1023,7 +1026,7 @@ pub mod serde {
             use super::super::SerdeAmountForOpt;
             use core::fmt;
             use core::marker::PhantomData;
-            use serde_crate::{de, Deserializer, Serializer};
+            use serde::{de, Deserializer, Serializer};
 
             pub fn serialize<A: SerdeAmountForOpt, S: Serializer>(
                 a: &Option<A>,
@@ -1072,67 +1075,67 @@ mod tests {
     use std::panic;
     use std::str::FromStr;
 
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "serde_support")]
     use serde_test;
 
     #[test]
     fn add_sub_mul_div() {
-        let pico = Amount::from_pico;
-        let spico = SignedAmount::from_pico;
+        let dust = Amount::from_dust;
+        let sdust = SignedAmount::from_dust;
 
-        assert_eq!(pico(15) + pico(15), pico(30));
-        assert_eq!(pico(15) - pico(15), pico(0));
-        assert_eq!(pico(14) * 3, pico(42));
-        assert_eq!(pico(14) / 2, pico(7));
-        assert_eq!(pico(14) % 3, pico(2));
-        assert_eq!(spico(15) - spico(20), spico(-5));
-        assert_eq!(spico(-14) * 3, spico(-42));
-        assert_eq!(spico(-14) / 2, spico(-7));
-        assert_eq!(spico(-14) % 3, spico(-2));
+        assert_eq!(dust(15) + dust(15), dust(30));
+        assert_eq!(dust(15) - dust(15), dust(0));
+        assert_eq!(dust(14) * 3, dust(42));
+        assert_eq!(dust(14) / 2, dust(7));
+        assert_eq!(dust(14) % 3, dust(2));
+        assert_eq!(sdust(15) - sdust(20), sdust(-5));
+        assert_eq!(sdust(-14) * 3, sdust(-42));
+        assert_eq!(sdust(-14) / 2, sdust(-7));
+        assert_eq!(sdust(-14) % 3, sdust(-2));
 
-        let mut b = spico(-5);
-        b += spico(13);
-        assert_eq!(b, spico(8));
-        b -= spico(3);
-        assert_eq!(b, spico(5));
+        let mut b = sdust(-5);
+        b += sdust(13);
+        assert_eq!(b, sdust(8));
+        b -= sdust(3);
+        assert_eq!(b, sdust(5));
         b *= 6;
-        assert_eq!(b, spico(30));
+        assert_eq!(b, sdust(30));
         b /= 3;
-        assert_eq!(b, spico(10));
+        assert_eq!(b, sdust(10));
         b %= 3;
-        assert_eq!(b, spico(1));
+        assert_eq!(b, sdust(1));
 
         // panic on overflow
-        let result = panic::catch_unwind(|| Amount::max_value() + Amount::from_pico(1));
+        let result = panic::catch_unwind(|| Amount::max_value() + Amount::from_dust(1));
         assert!(result.is_err());
-        let result = panic::catch_unwind(|| Amount::from_pico(8446744073709551615) * 3);
+        let result = panic::catch_unwind(|| Amount::from_dust(8446744073709551615) * 3);
         assert!(result.is_err());
     }
 
     #[test]
     fn checked_arithmetic() {
-        let pico = Amount::from_pico;
-        let spico = SignedAmount::from_pico;
+        let dust = Amount::from_dust;
+        let sdust = SignedAmount::from_dust;
 
-        assert_eq!(pico(42).checked_add(pico(1)), Some(pico(43)));
-        assert_eq!(SignedAmount::max_value().checked_add(spico(1)), None);
-        assert_eq!(SignedAmount::min_value().checked_sub(spico(1)), None);
-        assert_eq!(Amount::max_value().checked_add(pico(1)), None);
-        assert_eq!(Amount::min_value().checked_sub(pico(1)), None);
+        assert_eq!(dust(42).checked_add(dust(1)), Some(dust(43)));
+        assert_eq!(SignedAmount::max_value().checked_add(sdust(1)), None);
+        assert_eq!(SignedAmount::min_value().checked_sub(sdust(1)), None);
+        assert_eq!(Amount::max_value().checked_add(dust(1)), None);
+        assert_eq!(Amount::min_value().checked_sub(dust(1)), None);
 
-        assert_eq!(pico(5).checked_sub(pico(3)), Some(pico(2)));
-        assert_eq!(pico(5).checked_sub(pico(6)), None);
-        assert_eq!(spico(5).checked_sub(spico(6)), Some(spico(-1)));
-        assert_eq!(pico(5).checked_rem(2), Some(pico(1)));
+        assert_eq!(dust(5).checked_sub(dust(3)), Some(dust(2)));
+        assert_eq!(dust(5).checked_sub(dust(6)), None);
+        assert_eq!(sdust(5).checked_sub(sdust(6)), Some(sdust(-1)));
+        assert_eq!(dust(5).checked_rem(2), Some(dust(1)));
 
-        assert_eq!(pico(5).checked_div(2), Some(pico(2))); // integer division
-        assert_eq!(spico(-6).checked_div(2), Some(spico(-3)));
+        assert_eq!(dust(5).checked_div(2), Some(dust(2))); // integer division
+        assert_eq!(sdust(-6).checked_div(2), Some(sdust(-3)));
 
-        assert_eq!(spico(-5).positive_sub(spico(3)), None);
-        assert_eq!(spico(5).positive_sub(spico(-3)), None);
-        assert_eq!(spico(3).positive_sub(spico(5)), None);
-        assert_eq!(spico(3).positive_sub(spico(3)), Some(spico(0)));
-        assert_eq!(spico(5).positive_sub(spico(3)), Some(spico(2)));
+        assert_eq!(sdust(-5).positive_sub(sdust(3)), None);
+        assert_eq!(sdust(5).positive_sub(sdust(-3)), None);
+        assert_eq!(sdust(3).positive_sub(sdust(5)), None);
+        assert_eq!(sdust(3).positive_sub(sdust(3)), Some(sdust(0)));
+        assert_eq!(sdust(5).positive_sub(sdust(3)), Some(sdust(2)));
     }
 
     #[test]
@@ -1141,101 +1144,95 @@ mod tests {
         use super::Denomination as D;
         let f = Amount::from_float_in;
         let sf = SignedAmount::from_float_in;
-        let pico = Amount::from_pico;
-        let spico = SignedAmount::from_pico;
+        let dust = Amount::from_dust;
+        let sdust = SignedAmount::from_dust;
 
-        assert_eq!(f(11.22, D::Monero), Ok(pico(11220000000000)));
-        assert_eq!(sf(-11.22, D::Millinero), Ok(spico(-11220000000)));
-        assert_eq!(f(11.22, D::Micronero), Ok(pico(11220000)));
-        assert_eq!(f(0.0001234, D::Monero), Ok(pico(123400000)));
-        assert_eq!(sf(-0.00012345, D::Monero), Ok(spico(-123450000)));
+        assert_eq!(f(112.2, D::Wownero), Ok(dust(11220000000000)));
+        assert_eq!(sf(-112.2, D::Verywow), Ok(sdust(-11220000000)));
+        assert_eq!(f(112.2, D::Muchwow), Ok(dust(11220000)));
+        assert_eq!(f(0.001234, D::Wownero), Ok(dust(123400000)));
+        assert_eq!(sf(-0.0012345, D::Wownero), Ok(sdust(-123450000)));
 
-        assert_eq!(f(-100.0, D::Piconero), Err(ParsingError::Negative));
-        assert_eq!(f(11.22, D::Piconero), Err(ParsingError::TooPrecise));
-        assert_eq!(sf(-0.1, D::Piconero), Err(ParsingError::TooPrecise));
+        assert_eq!(f(-1000.0, D::Dust), Err(ParsingError::Negative));
+        assert_eq!(f(112.2, D::Dust), Err(ParsingError::TooPrecise));
+        assert_eq!(sf(-0.1, D::Dust), Err(ParsingError::TooPrecise));
         assert_eq!(
-            f(42.000_000_000_000_1, D::Monero),
+            f(42.000_000_000_000_1, D::Wownero),
             Err(ParsingError::TooPrecise)
         );
-        assert_eq!(sf(-184467440738.0, D::Monero), Err(ParsingError::TooBig));
+        assert_eq!(sf(-184467440738.0, D::Wownero), Err(ParsingError::TooBig));
         assert_eq!(
-            f(18446744073709551617.0, D::Piconero),
+            f(18446744073709551617.0, D::Dust),
             Err(ParsingError::TooBig)
         );
         assert_eq!(
             f(
-                SignedAmount::max_value().to_float_in(D::Piconero) + 1.0,
-                D::Piconero
+                SignedAmount::max_value().to_float_in(D::Dust) + 1.0,
+                D::Dust
             ),
             Err(ParsingError::TooBig)
         );
         assert_eq!(
-            f(
-                Amount::max_value().to_float_in(D::Piconero) + 1.0,
-                D::Piconero
-            ),
+            f(Amount::max_value().to_float_in(D::Dust) + 1.0, D::Dust),
             Err(ParsingError::TooBig)
         );
 
-        let xmr = move |f| SignedAmount::from_xmr(f).unwrap();
-        assert_eq!(xmr(2.5).to_float_in(D::Monero), 2.5);
-        assert_eq!(xmr(-2.5).to_float_in(D::Millinero), -2500.0);
-        assert_eq!(xmr(-2.5).to_float_in(D::Micronero), -2500000.0);
-        assert_eq!(xmr(-2.5).to_float_in(D::Nanonero), -2500000000.0);
-        assert_eq!(xmr(2.5).to_float_in(D::Piconero), 2500000000000.0);
+        let wow = move |f| SignedAmount::from_wow(f).unwrap();
+        assert_eq!(wow(2.5).to_float_in(D::Wownero), 2.5);
+        assert_eq!(wow(-2.5).to_float_in(D::Verywow), -2500.0);
+        assert_eq!(wow(-2.5).to_float_in(D::Muchwow), -2500000.0);
+        assert_eq!(wow(-2.5).to_float_in(D::Suchwow), -2500000000.0);
+        assert_eq!(wow(2.5).to_float_in(D::Dust), 250000000000.0);
 
-        let xmr = move |f| Amount::from_xmr(f).unwrap();
-        assert_eq!(&xmr(0.0012).to_float_in(D::Monero).to_string(), "0.0012")
+        let wow = move |f| Amount::from_wow(f).unwrap();
+        assert_eq!(&wow(0.0012).to_float_in(D::Wownero).to_string(), "0.0012")
     }
 
     #[test]
     fn parsing() {
         use super::ParsingError as E;
-        let xmr = Denomination::Monero;
-        let pico = Denomination::Piconero;
+        let wow = Denomination::Wownero;
+        let dust = Denomination::Dust;
         let p = Amount::from_str_in;
         let sp = SignedAmount::from_str_in;
 
-        assert_eq!(p("x", xmr), Err(E::InvalidCharacter('x')));
-        assert_eq!(p("-", xmr), Err(E::InvalidFormat));
-        assert_eq!(sp("-", xmr), Err(E::InvalidFormat));
-        assert_eq!(p("-1.0x", xmr), Err(E::InvalidCharacter('x')));
-        assert_eq!(p("0.0 ", xmr), Err(ParsingError::InvalidCharacter(' ')));
-        assert_eq!(p("0.000.000", xmr), Err(E::InvalidFormat));
+        assert_eq!(p("x", wow), Err(E::InvalidCharacter('x')));
+        assert_eq!(p("-", wow), Err(E::InvalidFormat));
+        assert_eq!(sp("-", wow), Err(E::InvalidFormat));
+        assert_eq!(p("-1.0x", wow), Err(E::InvalidCharacter('x')));
+        assert_eq!(p("0.0 ", wow), Err(ParsingError::InvalidCharacter(' ')));
+        assert_eq!(p("0.000.000", wow), Err(E::InvalidFormat));
         let more_than_max = format!("1{}", Amount::max_value());
-        assert_eq!(p(&more_than_max, xmr), Err(E::TooBig));
-        assert_eq!(p("0.0000000000042", xmr), Err(E::TooPrecise));
+        assert_eq!(p(&more_than_max, wow), Err(E::TooBig));
+        assert_eq!(p("0.0000000000042", wow), Err(E::TooPrecise));
 
-        assert_eq!(p("1", xmr), Ok(Amount::from_pico(1_000_000_000_000)));
+        assert_eq!(p("1", wow), Ok(Amount::from_dust(100_000_000_000)));
+        assert_eq!(sp("-.5", wow), Ok(SignedAmount::from_dust(-50_000_000_000)));
+        assert_eq!(p("1.1", wow), Ok(Amount::from_dust(110_000_000_000)));
+        assert_eq!(p("100", dust), Ok(Amount::from_dust(100)));
+        assert_eq!(p("55", dust), Ok(Amount::from_dust(55)));
         assert_eq!(
-            sp("-.5", xmr),
-            Ok(SignedAmount::from_pico(-500_000_000_000))
-        );
-        assert_eq!(p("1.1", xmr), Ok(Amount::from_pico(1_100_000_000_000)));
-        assert_eq!(p("100", pico), Ok(Amount::from_pico(100)));
-        assert_eq!(p("55", pico), Ok(Amount::from_pico(55)));
-        assert_eq!(
-            p("5500000000000000000", pico),
-            Ok(Amount::from_pico(5_500_000_000_000_000_000))
+            p("5500000000000000000", dust),
+            Ok(Amount::from_dust(5_500_000_000_000_000_000))
         );
         // Should this even pass?
         assert_eq!(
-            p("5500000000000000000.", pico),
-            Ok(Amount::from_pico(5_500_000_000_000_000_000))
+            p("5500000000000000000.", dust),
+            Ok(Amount::from_dust(5_500_000_000_000_000_000))
         );
         assert_eq!(
-            p("1234567.123456789123", xmr),
-            Ok(Amount::from_pico(1_234_567_123_456_789_123))
+            p("12345671.2345678912", wow),
+            Ok(Amount::from_dust(1_234_567_123_456_789_120))
         );
 
-        // make sure Piconero > i64::max_value() is checked.
-        let amount = Amount::from_pico(i64::max_value() as u64);
+        // make sure Dust > i64::max_value() is checked.
+        let amount = Amount::from_dust(i64::max_value() as u64);
         assert_eq!(
-            Amount::from_str_in(&amount.to_string_in(pico), pico),
+            Amount::from_str_in(&amount.to_string_in(dust), dust),
             Ok(amount)
         );
         assert_eq!(
-            Amount::from_str_in(&(amount + Amount(1)).to_string_in(pico), pico),
+            Amount::from_str_in(&(amount + Amount(1)).to_string_in(dust), dust),
             Err(E::TooBig)
         );
 
@@ -1243,7 +1240,7 @@ mod tests {
         assert_eq!(
             p(
                 "100000000000000.0000000000000000000000000000000000",
-                Denomination::Monero
+                Denomination::Wownero
             ),
             Err(E::TooBig)
         );
@@ -1251,7 +1248,7 @@ mod tests {
         assert_eq!(
             p(
                 "100000000000000.00000000000000000000000000000000000",
-                Denomination::Monero
+                Denomination::Wownero
             ),
             Err(E::InputTooLarge)
         );
@@ -1261,37 +1258,37 @@ mod tests {
     fn to_string() {
         use super::Denomination as D;
 
-        assert_eq!(Amount::ONE_XMR.to_string_in(D::Monero), "1.000000000000");
-        assert_eq!(Amount::ONE_XMR.to_string_in(D::Piconero), "1000000000000");
-        assert_eq!(Amount::ONE_PICO.to_string_in(D::Monero), "0.000000000001");
+        assert_eq!(Amount::ONE_WOW.to_string_in(D::Wownero), "1.00000000000");
+        assert_eq!(Amount::ONE_WOW.to_string_in(D::Dust), "100000000000");
+        assert_eq!(Amount::ONE_DUST.to_string_in(D::Wownero), "0.00000000001");
         assert_eq!(
-            SignedAmount::from_pico(-42).to_string_in(D::Monero),
-            "-0.000000000042"
+            SignedAmount::from_dust(-42).to_string_in(D::Wownero),
+            "-0.00000000042"
         );
 
         assert_eq!(
-            Amount::ONE_XMR.to_string_with_denomination(D::Monero),
-            "1.000000000000 XMR"
+            Amount::ONE_WOW.to_string_with_denomination(D::Wownero),
+            "1.00000000000 WOW"
         );
         assert_eq!(
-            SignedAmount::ONE_XMR.to_string_with_denomination(D::Piconero),
-            "1000000000000 piconero"
+            SignedAmount::ONE_WOW.to_string_with_denomination(D::Dust),
+            "100000000000 Dust"
         );
         assert_eq!(
-            Amount::ONE_PICO.to_string_with_denomination(D::Monero),
-            "0.000000000001 XMR"
+            Amount::ONE_DUST.to_string_with_denomination(D::Wownero),
+            "0.00000000001 WOW"
         );
         assert_eq!(
-            SignedAmount::from_pico(-42).to_string_with_denomination(D::Monero),
-            "-0.000000000042 XMR"
+            SignedAmount::from_dust(-42).to_string_with_denomination(D::Wownero),
+            "-0.00000000042 WOW"
         );
     }
 
     #[test]
     fn test_unsigned_signed_conversion() {
         use super::ParsingError as E;
-        let p = Amount::from_pico;
-        let sp = SignedAmount::from_pico;
+        let p = Amount::from_dust;
+        let sp = SignedAmount::from_dust;
 
         assert_eq!(Amount::max_value().to_signed(), Err(E::TooBig));
         assert_eq!(
@@ -1323,37 +1320,34 @@ mod tests {
         let p = Amount::from_str;
         let sp = SignedAmount::from_str;
 
-        assert_eq!(p("x XMR"), Err(E::InvalidCharacter('x')));
-        assert_eq!(p("5 XMR XMR"), Err(E::InvalidFormat));
-        assert_eq!(p("5 5 XMR"), Err(E::InvalidFormat));
+        assert_eq!(p("x WOW"), Err(E::InvalidCharacter('x')));
+        assert_eq!(p("5 WOW WOW"), Err(E::InvalidFormat));
+        assert_eq!(p("5 5 WOW"), Err(E::InvalidFormat));
 
         assert_eq!(p("5 BCH"), Err(E::UnknownDenomination("BCH".to_owned())));
 
-        assert_eq!(p("-1 XMR"), Err(E::Negative));
-        assert_eq!(p("-0.0 XMR"), Err(E::Negative));
-        assert_eq!(p("0.1234567891234 XMR"), Err(E::TooPrecise));
-        assert_eq!(sp("-0.1 piconero"), Err(E::TooPrecise));
-        assert_eq!(p("0.1234567 micronero"), Err(E::TooPrecise));
-        assert_eq!(sp("-1.0001 nanonero"), Err(E::TooPrecise));
-        assert_eq!(sp("-200000000000 XMR"), Err(E::TooBig));
-        assert_eq!(p("18446744073709551616 piconero"), Err(E::TooBig));
+        assert_eq!(p("-1 WOW"), Err(E::Negative));
+        assert_eq!(p("-0.0 WOW"), Err(E::Negative));
+        assert_eq!(p("0.1234567891234 WOW"), Err(E::TooPrecise));
+        assert_eq!(sp("-0.1 Dust"), Err(E::TooPrecise));
+        assert_eq!(p("0.1234567 Muchwow"), Err(E::TooPrecise));
+        assert_eq!(sp("-1.0001 Suchwow"), Err(E::TooPrecise));
+        assert_eq!(sp("-200000000000 WOW"), Err(E::TooBig));
+        assert_eq!(p("18446744073709551616 Dust"), Err(E::TooBig));
 
-        assert_eq!(p(".5 nanonero"), Ok(Amount::from_pico(500)));
-        assert_eq!(sp("-.5 nanonero"), Ok(SignedAmount::from_pico(-500)));
-        assert_eq!(p("0.000000253583 XMR"), Ok(Amount::from_pico(253583)));
-        assert_eq!(sp("-5 piconero"), Ok(SignedAmount::from_pico(-5)));
+        assert_eq!(p(".5 Suchwow"), Ok(Amount::from_dust(50)));
+        assert_eq!(sp("-.5 Suchwow"), Ok(SignedAmount::from_dust(-50)));
+        assert_eq!(p("0.00000253583 WOW"), Ok(Amount::from_dust(253583)));
+        assert_eq!(sp("-5 Dust"), Ok(SignedAmount::from_dust(-5)));
         assert_eq!(
-            p("0.100000000000 XMR"),
-            Ok(Amount::from_pico(100_000_000_000))
+            p("0.10000000000 WOW"),
+            Ok(Amount::from_dust(10_000_000_000))
         );
-        assert_eq!(sp("-10 nanonero"), Ok(SignedAmount::from_pico(-10_000)));
+        assert_eq!(sp("-10 Suchwow"), Ok(SignedAmount::from_dust(-1_000)));
+        assert_eq!(sp("-10 Muchwow"), Ok(SignedAmount::from_dust(-1_000_000)));
         assert_eq!(
-            sp("-10 micronero"),
-            Ok(SignedAmount::from_pico(-10_000_000))
-        );
-        assert_eq!(
-            sp("-10 millinero"),
-            Ok(SignedAmount::from_pico(-10_000_000_000))
+            sp("-10 Verywow"),
+            Ok(SignedAmount::from_dust(-1_000_000_000))
         );
     }
 
@@ -1361,78 +1355,72 @@ mod tests {
     fn to_from_string_in() {
         use super::Denomination as D;
         let ua_str = Amount::from_str_in;
-        let ua_pic = Amount::from_pico;
+        let ua_sat = Amount::from_dust;
         let sa_str = SignedAmount::from_str_in;
-        let sa_pic = SignedAmount::from_pico;
+        let sa_sat = SignedAmount::from_dust;
 
-        assert_eq!("0.500", Amount::from_pico(500).to_string_in(D::Nanonero));
+        assert_eq!("0.50", Amount::from_dust(50).to_string_in(D::Suchwow));
         assert_eq!(
-            "-0.500",
-            SignedAmount::from_pico(-500).to_string_in(D::Nanonero)
+            "-0.50",
+            SignedAmount::from_dust(-50).to_string_in(D::Suchwow)
         );
         assert_eq!(
-            "0.002535830000",
-            Amount::from_pico(2535830000).to_string_in(D::Monero)
+            "0.02535830000",
+            Amount::from_dust(2535830000).to_string_in(D::Wownero)
         );
-        assert_eq!("-5", SignedAmount::from_pico(-5).to_string_in(D::Piconero));
+        assert_eq!("-5", SignedAmount::from_dust(-5).to_string_in(D::Dust));
         assert_eq!(
-            "0.100000000000",
-            Amount::from_pico(100_000_000_000).to_string_in(D::Monero)
+            "0.10000000000",
+            Amount::from_dust(10_000_000_000).to_string_in(D::Wownero)
         );
         assert_eq!(
-            "-10.000",
-            SignedAmount::from_pico(-10_000).to_string_in(D::Nanonero)
+            "-10.00",
+            SignedAmount::from_dust(-1_000).to_string_in(D::Suchwow)
         );
 
         assert_eq!(
-            ua_str(&ua_pic(0).to_string_in(D::Piconero), D::Piconero),
-            Ok(ua_pic(0))
+            ua_str(&ua_sat(0).to_string_in(D::Dust), D::Dust),
+            Ok(ua_sat(0))
         );
         assert_eq!(
-            ua_str(&ua_pic(500).to_string_in(D::Monero), D::Monero),
-            Ok(ua_pic(500))
+            ua_str(&ua_sat(500).to_string_in(D::Wownero), D::Wownero),
+            Ok(ua_sat(500))
         );
         assert_eq!(
-            ua_str(&ua_pic(21_000_000).to_string_in(D::Nanonero), D::Nanonero),
-            Ok(ua_pic(21_000_000))
+            ua_str(&ua_sat(21_000_000).to_string_in(D::Suchwow), D::Suchwow),
+            Ok(ua_sat(21_000_000))
         );
         assert_eq!(
-            ua_str(&ua_pic(1).to_string_in(D::Micronero), D::Micronero),
-            Ok(ua_pic(1))
+            ua_str(&ua_sat(1).to_string_in(D::Muchwow), D::Muchwow),
+            Ok(ua_sat(1))
         );
         assert_eq!(
             ua_str(
-                &ua_pic(1_000_000_000_000).to_string_in(D::Millinero),
-                D::Millinero
+                &ua_sat(1_000_000_000_000).to_string_in(D::Verywow),
+                D::Verywow
             ),
-            Ok(ua_pic(1_000_000_000_000))
+            Ok(ua_sat(1_000_000_000_000))
         );
         assert_eq!(
             ua_str(
-                &ua_pic(u64::max_value()).to_string_in(D::Millinero),
-                D::Millinero
+                &ua_sat(u64::max_value()).to_string_in(D::Verywow),
+                D::Verywow
             ),
             Err(ParsingError::TooBig)
         );
 
         assert_eq!(
-            sa_str(&sa_pic(-1).to_string_in(D::Micronero), D::Micronero),
-            Ok(sa_pic(-1))
+            sa_str(&sa_sat(-1).to_string_in(D::Muchwow), D::Muchwow),
+            Ok(sa_sat(-1))
         );
 
         assert_eq!(
-            sa_str(
-                &sa_pic(i64::max_value()).to_string_in(D::Piconero),
-                D::Micronero
-            ),
+            sa_str(&sa_sat(i64::max_value()).to_string_in(D::Dust), D::Muchwow),
             Err(ParsingError::TooBig)
         );
         // Test an overflow bug in `abs()`
         assert_eq!(
-            sa_str(
-                &sa_pic(i64::min_value()).to_string_in(D::Piconero),
-                D::Micronero
-            ),
+            sa_str(&sa_sat(i64::min_value()).to_string_in(D::Dust), D::Muchwow),
             Err(ParsingError::TooBig)
         );
     }
@@ -1440,35 +1428,34 @@ mod tests {
     #[test]
     fn to_string_with_denomination_from_str_roundtrip() {
         use super::Denomination as D;
-        let amt = Amount::from_pico(42);
+        let amt = Amount::from_dust(42);
         let denom = Amount::to_string_with_denomination;
-        assert_eq!(Amount::from_str(&denom(amt, D::Monero)), Ok(amt));
-        assert_eq!(Amount::from_str(&denom(amt, D::Millinero)), Ok(amt));
-        assert_eq!(Amount::from_str(&denom(amt, D::Micronero)), Ok(amt));
-        assert_eq!(Amount::from_str(&denom(amt, D::Nanonero)), Ok(amt));
-        assert_eq!(Amount::from_str(&denom(amt, D::Piconero)), Ok(amt));
+        assert_eq!(Amount::from_str(&denom(amt, D::Wownero)), Ok(amt));
+        assert_eq!(Amount::from_str(&denom(amt, D::Verywow)), Ok(amt));
+        assert_eq!(Amount::from_str(&denom(amt, D::Muchwow)), Ok(amt));
+        assert_eq!(Amount::from_str(&denom(amt, D::Suchwow)), Ok(amt));
+        assert_eq!(Amount::from_str(&denom(amt, D::Dust)), Ok(amt));
 
         assert_eq!(
-            Amount::from_str("42 piconero XMR"),
+            Amount::from_str("42 Dust WOW"),
             Err(ParsingError::InvalidFormat)
         );
         assert_eq!(
-            SignedAmount::from_str("-42 piconero XMR"),
+            SignedAmount::from_str("-42 Dust WOW"),
             Err(ParsingError::InvalidFormat)
         );
     }
 
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "serde_support")]
     #[test]
     fn serde_as_pico() {
-        use serde_crate::{Deserialize, Serialize};
+        use serde::{Deserialize, Serialize};
 
         #[derive(Serialize, Deserialize, PartialEq, Debug)]
-        #[cfg_attr(feature = "serde", serde(crate = "serde_crate"))]
         struct T {
-            #[serde(with = "super::serde::as_pico")]
+            #[serde(with = "super::serde_impl::as_pico")]
             pub amt: Amount,
-            #[serde(with = "super::serde::as_pico")]
+            #[serde(with = "super::serde_impl::as_pico")]
             pub samt: SignedAmount,
         }
         serde_test::assert_tokens(
@@ -1487,24 +1474,23 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "serde_support")]
     #[test]
     fn serde_as_pico_opt() {
-        use serde_crate::{Deserialize, Serialize};
+        use serde::{Deserialize, Serialize};
         use serde_json;
 
         #[derive(Serialize, Deserialize, PartialEq, Debug, Eq)]
-        #[cfg_attr(feature = "serde", serde(crate = "serde_crate"))]
         struct T {
-            #[serde(default, with = "super::serde::as_pico::opt")]
+            #[serde(default, with = "super::serde_impl::as_pico::opt")]
             pub amt: Option<Amount>,
-            #[serde(default, with = "super::serde::as_pico::opt")]
+            #[serde(default, with = "super::serde_impl::as_pico::opt")]
             pub samt: Option<SignedAmount>,
         }
 
         let with = T {
-            amt: Some(Amount::from_pico(2_500_000_000_000)),
-            samt: Some(SignedAmount::from_pico(-2_500_000_000_000)),
+            amt: Some(Amount::from_pico(2__500_000_000_000)),
+            samt: Some(SignedAmount::from_pico(-2__500_000_000_000)),
         };
         let without = T {
             amt: None,
@@ -1533,32 +1519,31 @@ mod tests {
         assert_eq!(without, serde_json::from_value(value_without).unwrap());
     }
 
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "serde_support")]
     #[test]
     fn serde_as_xmr() {
-        use serde_crate::{Deserialize, Serialize};
+        use serde::{Deserialize, Serialize};
         use serde_json;
 
         #[derive(Serialize, Deserialize, PartialEq, Debug)]
-        #[cfg_attr(feature = "serde", serde(crate = "serde_crate"))]
         struct T {
-            #[serde(with = "super::serde::as_xmr")]
+            #[serde(with = "super::serde_impl::as_xmr")]
             pub amt: Amount,
-            #[serde(with = "super::serde::as_xmr")]
+            #[serde(with = "super::serde_impl::as_xmr")]
             pub samt: SignedAmount,
         }
 
         let orig = T {
-            amt: Amount::from_pico(9_000_000_000_000_000_001),
-            samt: SignedAmount::from_pico(-9_000_000_000_000_000_001),
+            amt: Amount::from_pico(9_000_000__000_000_000_001),
+            samt: SignedAmount::from_pico(-9_000_000__000_000_000_001),
         };
 
         let json = "{\"amt\": \"9000000.000000000001\", \
                    \"samt\": \"-9000000.000000000001\"}";
-        let t: T = serde_json::from_str(json).unwrap();
+        let t: T = serde_json::from_str(&json).unwrap();
         assert_eq!(t, orig);
 
-        let value: serde_json::Value = serde_json::from_str(json).unwrap();
+        let value: serde_json::Value = serde_json::from_str(&json).unwrap();
         assert_eq!(t, serde_json::from_value(value).unwrap());
 
         // errors
@@ -1576,24 +1561,23 @@ mod tests {
             .contains(&ParsingError::Negative.to_string()));
     }
 
-    #[cfg(feature = "serde")]
+    #[cfg(feature = "serde_support")]
     #[test]
     fn serde_as_xmr_opt() {
-        use serde_crate::{Deserialize, Serialize};
+        use serde::{Deserialize, Serialize};
         use serde_json;
 
         #[derive(Serialize, Deserialize, PartialEq, Debug, Eq)]
-        #[cfg_attr(feature = "serde", serde(crate = "serde_crate"))]
         struct T {
-            #[serde(default, with = "super::serde::as_xmr::opt")]
+            #[serde(default, with = "super::serde_impl::as_xmr::opt")]
             pub amt: Option<Amount>,
-            #[serde(default, with = "super::serde::as_xmr::opt")]
+            #[serde(default, with = "super::serde_impl::as_xmr::opt")]
             pub samt: Option<SignedAmount>,
         }
 
         let with = T {
-            amt: Some(Amount::from_pico(2_500_000_000_000)),
-            samt: Some(SignedAmount::from_pico(-2_500_000_000_000)),
+            amt: Some(Amount::from_pico(2__500_000_000_000)),
+            samt: Some(SignedAmount::from_pico(-2__500_000_000_000)),
         };
         let without = T {
             amt: None,
