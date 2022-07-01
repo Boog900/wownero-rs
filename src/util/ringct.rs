@@ -22,6 +22,7 @@
 
 use std::{fmt, io};
 
+use crate::blockdata::transaction;
 use crate::consensus::encode::{self, serialize, Decodable, Encodable, VarInt};
 use crate::cryptonote::hash;
 use crate::cryptonote::onetime_key::KeyGenerator;
@@ -34,7 +35,7 @@ use serde_big_array::BigArray;
 use serde_crate::{Deserialize, Serialize};
 
 use curve25519_dalek::constants::ED25519_BASEPOINT_POINT;
-use curve25519_dalek::edwards::EdwardsPoint;
+use curve25519_dalek::edwards::{CompressedEdwardsY, EdwardsPoint};
 use curve25519_dalek::scalar::Scalar;
 use sealed::sealed;
 use thiserror::Error;
@@ -66,6 +67,34 @@ impl_consensus_encoding!(Key, key);
 impl Key {
     fn new() -> Key {
         Key { key: [0; 32] }
+    }
+    /// Converts Key to an EdwardsPoint
+    ///
+    /// This is used when decrypting owned outputs for transactions after BP+
+    /// https://git.wownero.com/wownero/wownero/commit/34884a4b00cc3f06bb1f3b8be4cf64cfea9a1b81
+    fn to_edwards(&self) -> Result<EdwardsPoint, transaction::Error> {
+        let edwardspoint = CompressedEdwardsY::from_slice(&self.key).decompress();
+        match edwardspoint {
+            None => Err(transaction::Error::InvalidCommitment),
+            Some(point) => Ok(point),
+        }
+    }
+    /// Converts from an EdwardsPoint to Key
+    ///
+    /// This is used when decrypting owned outputs for transactions after BP+
+    /// https://git.wownero.com/wownero/wownero/commit/34884a4b00cc3f06bb1f3b8be4cf64cfea9a1b81
+    fn from_edwards(edwardspoint: EdwardsPoint) -> Key {
+        Key {
+            key: edwardspoint.compress().as_bytes().clone(),
+        }
+    }
+    /// Multiplies the Key by 8
+    ///
+    /// This is used when decrypting owned outputs for transactions after BP+
+    /// https://git.wownero.com/wownero/wownero/commit/34884a4b00cc3f06bb1f3b8be4cf64cfea9a1b81
+    pub fn scalarmult8(&self) -> Result<Key, transaction::Error> {
+        let edwardspoint = self.to_edwards()?;
+        Ok(Key::from_edwards(edwardspoint.mul_by_cofactor()))
     }
 }
 

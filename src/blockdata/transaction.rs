@@ -455,12 +455,17 @@ impl TransactionPrefix {
                             .ecdh_info
                             .get(i)
                             .ok_or(Error::MissingEcdhInfo)?;
-                        let actual_commitment =
-                            rct_sig_base.out_pk.get(i).ok_or(Error::MissingCommitment)?;
-                        let actual_commitment = CompressedEdwardsY(actual_commitment.mask.key)
+                        let out_pk = rct_sig_base.out_pk.get(i).ok_or(Error::MissingCommitment)?;
+                        let mut actual_commitment = CompressedEdwardsY(out_pk.mask.key)
                             .decompress()
                             .ok_or(Error::InvalidCommitment)?;
-
+                        // https://git.wownero.com/wownero/wownero/commit/34884a4b00cc3f06bb1f3b8be4cf64cfea9a1b81
+                        if rct_sig_base.rct_type == RctType::BulletproofPlus {
+                            let out_pk_mask = out_pk.mask.scalarmult8()?;
+                            actual_commitment = CompressedEdwardsY(out_pk_mask.key)
+                                .decompress()
+                                .ok_or(Error::InvalidCommitment)?;
+                        }
                         let opening = ecdh_info
                             .open_commitment(checker.keys, tx_pubkey, i, &actual_commitment)
                             .ok_or(Error::InvalidCommitment)?;
