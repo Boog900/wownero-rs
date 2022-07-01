@@ -1533,8 +1533,8 @@ mod tests {
         }
 
         let orig = T {
-            amt: Amount::from_dust(9_000_000_000_000_000_001),
-            samt: SignedAmount::from_dust(-9_000_000_000_000_000_001),
+            amt: Amount::from_dust(900_000_000_000_000_001),
+            samt: SignedAmount::from_dust(-900_000_000_000_000_001),
         };
 
         let json = "{\"amt\": \"9000000.00000000001\", \
