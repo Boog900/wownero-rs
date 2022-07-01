@@ -8,6 +8,7 @@ include = [
   "src/*",
   "README.md",
   "CHANGELOG.md",
+  "MONEROCHANGELOG.md",
   "LICENSE",
 ]
 keywords = ["monero"]
