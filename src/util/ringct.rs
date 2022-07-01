@@ -72,7 +72,7 @@ impl Key {
     ///
     /// This is used when decrypting owned outputs for transactions after BP+
     /// https://git.wownero.com/wownero/wownero/commit/34884a4b00cc3f06bb1f3b8be4cf64cfea9a1b81
-    fn to_edwards(&self) -> Result<EdwardsPoint, transaction::Error> {
+    fn as_edwards(&self) -> Result<EdwardsPoint, transaction::Error> {
         let edwardspoint = CompressedEdwardsY::from_slice(&self.key).decompress();
         match edwardspoint {
             None => Err(transaction::Error::InvalidCommitment),
@@ -85,7 +85,7 @@ impl Key {
     /// https://git.wownero.com/wownero/wownero/commit/34884a4b00cc3f06bb1f3b8be4cf64cfea9a1b81
     fn from_edwards(edwardspoint: EdwardsPoint) -> Key {
         Key {
-            key: edwardspoint.compress().as_bytes().clone(),
+            key: *edwardspoint.compress().as_bytes(),
         }
     }
     /// Multiplies the Key by 8
@@ -93,7 +93,7 @@ impl Key {
     /// This is used when decrypting owned outputs for transactions after BP+
     /// https://git.wownero.com/wownero/wownero/commit/34884a4b00cc3f06bb1f3b8be4cf64cfea9a1b81
     pub fn scalarmult8(&self) -> Result<Key, transaction::Error> {
-        let edwardspoint = self.to_edwards()?;
+        let edwardspoint = self.as_edwards()?;
         Ok(Key::from_edwards(edwardspoint.mul_by_cofactor()))
     }
 }

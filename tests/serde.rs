@@ -27,29 +27,29 @@ fn serde_amount_and_signed_amount() {
     #[derive(Serialize, Deserialize)]
     #[serde(crate = "serde_crate")]
     pub struct HasAmount<T: SerdeAmountForOpt + SerdeAmount> {
-        #[serde(with = "monero::util::amount::serde::as_xmr")]
-        pub xmr_amount: T,
-        #[serde(with = "monero::util::amount::serde::as_xmr::opt")]
-        pub some_xmr_amount: Option<T>,
-        #[serde(with = "monero::util::amount::serde::as_pico")]
-        pub pico_amount: T,
-        #[serde(with = "monero::util::amount::serde::as_pico::opt")]
-        pub some_pico_amount: Option<T>,
+        #[serde(with = "monero::util::amount::serde::as_wow")]
+        pub wow_amount: T,
+        #[serde(with = "monero::util::amount::serde::as_wow::opt")]
+        pub some_wow_amount: Option<T>,
+        #[serde(with = "monero::util::amount::serde::as_dust")]
+        pub dust_amount: T,
+        #[serde(with = "monero::util::amount::serde::as_dust::opt")]
+        pub some_dust_amount: Option<T>,
     }
 
-    let amt = Amount::ONE_PICO;
+    let amt = Amount::ONE_DUST;
     let _t = HasAmount {
-        xmr_amount: amt,
-        some_xmr_amount: Some(amt),
-        pico_amount: amt,
-        some_pico_amount: Some(amt),
+        wow_amount: amt,
+        some_wow_amount: Some(amt),
+        dust_amount: amt,
+        some_dust_amount: Some(amt),
     };
 
-    let amt = SignedAmount::ONE_PICO;
+    let amt = SignedAmount::ONE_DUST;
     let _t = HasAmount {
-        xmr_amount: amt,
-        some_xmr_amount: Some(amt),
-        pico_amount: amt,
-        some_pico_amount: Some(amt),
+        wow_amount: amt,
+        some_wow_amount: Some(amt),
+        dust_amount: amt,
+        some_dust_amount: Some(amt),
     };
 }
