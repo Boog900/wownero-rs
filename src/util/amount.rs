@@ -139,7 +139,7 @@ fn parse_signed_to_dust(mut s: &str, denom: Denomination) -> Result<(bool, u64),
             // into a less precise amount. That is not allowed unless
             // there are no decimals and the last digits are zeroes as
             // many as the difference in precision.
-            let last_n = precision_diff.abs() as usize;
+            let last_n = precision_diff.unsigned_abs() as usize;
             if is_too_precise(s, last_n) {
                 return Err(ParsingError::TooPrecise);
             }
@@ -211,7 +211,7 @@ fn fmt_dust_in(
         }
         Ordering::Less => {
             // need to inject a comma in the number
-            let nb_decimals = precision.abs() as usize;
+            let nb_decimals = precision.unsigned_abs() as usize;
             let real = format!("{:0width$}", dust, width = nb_decimals);
             if real.len() == nb_decimals {
                 write!(f, "0.{}", &real[real.len() - nb_decimals..])?;
@@ -1537,8 +1537,8 @@ mod tests {
             samt: SignedAmount::from_dust(-9_000_000_000_000_000_001),
         };
 
-        let json = "{\"amt\": \"9000000.000000000001\", \
-                   \"samt\": \"-9000000.000000000001\"}";
+        let json = "{\"amt\": \"9000000.00000000001\", \
+                   \"samt\": \"-9000000.00000000001\"}";
         let t: T = serde_json::from_str(json).unwrap();
         assert_eq!(t, orig);
 
@@ -1576,8 +1576,8 @@ mod tests {
         }
 
         let with = T {
-            amt: Some(Amount::from_dust(2_500_000_000_000)),
-            samt: Some(SignedAmount::from_dust(-2_500_000_000_000)),
+            amt: Some(Amount::from_dust(250_000_000_000)),
+            samt: Some(SignedAmount::from_dust(-250_000_000_000)),
         };
         let without = T {
             amt: None,
