@@ -15,11 +15,11 @@
 
 #![cfg(any(feature = "serde"))]
 
-use monero::util::amount::{
+use wownero::util::amount::{
     serde::{SerdeAmount, SerdeAmountForOpt},
     SignedAmount,
 };
-use monero::Amount;
+use wownero::Amount;
 use serde_crate::{Deserialize, Serialize};
 
 #[test]
@@ -27,13 +27,13 @@ fn serde_amount_and_signed_amount() {
     #[derive(Serialize, Deserialize)]
     #[serde(crate = "serde_crate")]
     pub struct HasAmount<T: SerdeAmountForOpt + SerdeAmount> {
-        #[serde(with = "monero::util::amount::serde::as_wow")]
+        #[serde(with = "wownero::util::amount::serde::as_wow")]
         pub wow_amount: T,
-        #[serde(with = "monero::util::amount::serde::as_wow::opt")]
+        #[serde(with = "wownero::util::amount::serde::as_wow::opt")]
         pub some_wow_amount: Option<T>,
-        #[serde(with = "monero::util::amount::serde::as_dust")]
+        #[serde(with = "wownero::util::amount::serde::as_dust")]
         pub dust_amount: T,
-        #[serde(with = "monero::util::amount::serde::as_dust::opt")]
+        #[serde(with = "wownero::util::amount::serde::as_dust::opt")]
         pub some_dust_amount: Option<T>,
     }
 

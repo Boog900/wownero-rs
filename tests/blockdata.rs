@@ -13,12 +13,12 @@
 // copies or substantial portions of the Software.
 //
 
-use monero::blockdata::transaction::{
+use wownero::blockdata::transaction::{
     ExtraField, Transaction, TransactionPrefix, TxIn, TxOut, TxOutTarget,
 };
-use monero::consensus::encode::{deserialize, serialize, VarInt};
-use monero::cryptonote::hash::Hashable;
-use monero::util::key::PublicKey;
+use wownero::consensus::encode::{deserialize, serialize, VarInt};
+use wownero::cryptonote::hash::Hashable;
+use wownero::util::key::PublicKey;
 use std::str::FromStr;
 
 // Rct type 0
