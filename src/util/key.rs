@@ -21,7 +21,7 @@
 //!
 //! ```rust
 //! use std::str::FromStr;
-//! use monero::util::key::{Error, PrivateKey, PublicKey};
+//! use wownero::util::key::{Error, PrivateKey, PublicKey};
 //!
 //! // parse private key from hex
 //! let privkey = PrivateKey::from_str("77916d0cd56ed1920aef6ca56d8a41bac915b68e4c46a589e0956e27a7b77404")?;
@@ -41,7 +41,7 @@
 //!
 //! ```rust
 //! use std::str::FromStr;
-//! use monero::util::key::{Error, PrivateKey, PublicKey};
+//! use wownero::util::key::{Error, PrivateKey, PublicKey};
 //!
 //! let priv1 = PrivateKey::from_str("77916d0cd56ed1920aef6ca56d8a41bac915b68e4c46a589e0956e27a7b77404")?;
 //! let priv2 = PrivateKey::from_str("8163466f1883598e6dd14027b8da727057165da91485834314f5500a65846f09")?;

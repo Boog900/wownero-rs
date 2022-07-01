@@ -824,11 +824,11 @@ pub mod serde {
     //!
     //! ```rust,ignore
     //! use serde::{Serialize, Deserialize};
-    //! use monero::Amount;
+    //! use wownero::Amount;
     //!
     //! #[derive(Serialize, Deserialize)]
     //! pub struct HasAmount {
-    //!     #[serde(with = "monero::util::amount::serde::as_wow")]
+    //!     #[serde(with = "wownero::util::amount::serde::as_wow")]
     //!     pub amount: Amount,
     //! }
     //! ```
