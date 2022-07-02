@@ -471,10 +471,8 @@ impl TransactionPrefix {
                             .ok_or(Error::InvalidCommitment)?;
                         // https://git.wownero.com/wownero/wownero/commit/34884a4b00cc3f06bb1f3b8be4cf64cfea9a1b81
                         if rct_sig_base.rct_type == RctType::BulletproofPlus {
-                            let out_pk_mask = out_pk.mask.scalarmult8()?;
-                            actual_commitment = CompressedEdwardsY(out_pk_mask.key)
-                                .decompress()
-                                .ok_or(Error::InvalidCommitment)?;
+                            // Multiplies the commitment by 8
+                            actual_commitment = actual_commitment.mul_by_cofactor();
                         }
                         let opening = ecdh_info
                             .open_commitment(checker.keys, tx_pubkey, i, &actual_commitment)
