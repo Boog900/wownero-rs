@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0]
 
-## Added
+### Added
 
 - vote by block and block header (de)serialization
 - Bulletproof+ (de)serialization
@@ -15,8 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- update network bytes for Wownero
-- update RCT types for Wownero
+- updated network bytes for Wownero
+- updated RCT types for Wownero
 - updated tests for Wownero
+- updated amount for Wownero
 
-[0.1.0]: https://github.com/monero-rs/monero-rs/releases/tag/v0.1.0
+[0.1.0]: https://github.com/Boog900/wownero-rs/releases/tag/v0.1.0
