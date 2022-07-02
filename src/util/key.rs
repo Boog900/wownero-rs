@@ -1,6 +1,8 @@
-// Rust Monero Library
+// Rust Wownero Library
 // Written in 2019-2022 by
-//   Monero Rust Contributors
+//    Monero Rust Contributors
+// Adapted to Wownero in 2022 by
+//    Boog900
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -13,9 +15,9 @@
 // copies or substantial portions of the Software.
 //
 
-//! # Monero public and private keys.
+//! # Wownero public and private keys.
 //!
-//! Support for (de)serializable and manipulation of Monero public and private keys.
+//! Support for (de)serializable and manipulation of Wownero public and private keys.
 //!
 //! ## Parsing
 //!
@@ -489,7 +491,7 @@ impl hash::Hashable for PublicKey {
 
 /// Alternative generator `H` used for pedersen commitments, as defined in
 /// [`rctTypes.h`](https://github.com/monero-project/monero/blob/master/src/ringct/rctTypes.h#L555)
-/// in the Monero codebase.
+/// in the Wownero codebase.
 pub const H: PublicKey = PublicKey {
     point: CompressedEdwardsY(hex!(
         "8b655970153799af2aeadc9ff1add0ea6c7251d54154cfa92c173a0dd39c1f94"

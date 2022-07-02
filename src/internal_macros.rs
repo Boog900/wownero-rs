@@ -1,6 +1,8 @@
-// Rust Monero Library
+// Rust Wownero Library
 // Written in 2019-2022 by
 //   Monero Rust Contributors
+// Adapted to Wownero in 2022 by
+//   Boog900
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +17,7 @@
 
 //! Internal Macros
 //!
-//! Macros meant to be used inside the Rust Monero library
+//! Macros meant to be used inside the Rust Wownero library
 
 macro_rules! impl_consensus_encoding {
     ( $thing:ident, $($field:ident),+ ) => (

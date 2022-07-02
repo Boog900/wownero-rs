@@ -1,4 +1,4 @@
-// Rust Monero Library
+// Rust Wownero Library
 // Written in 2021-2022 by
 //   Monero Rust Contributors
 //
@@ -242,7 +242,7 @@ impl Amount {
     pub const ZERO: Amount = Amount(0);
     /// Exactly one Dust.
     pub const ONE_DUST: Amount = Amount(1);
-    /// Exactly one monero.
+    /// Exactly one Wownero.
     pub const ONE_WOW: Amount = Amount(100_000_000_000);
 
     /// Create an [`Amount`] with Dust precision and the given number of Dust.
@@ -265,7 +265,7 @@ impl Amount {
         Amount(u64::min_value())
     }
 
-    /// Convert from a value expressing moneros to an [`Amount`].
+    /// Convert from a value expressing Wowneros to an [`Amount`].
     pub fn from_wow(wow: f64) -> Result<Amount, ParsingError> {
         Amount::from_float_in(wow, Denomination::Wownero)
     }
@@ -496,7 +496,7 @@ impl FromStr for Amount {
     }
 }
 
-/// Represent an signed quantity of Wownero, internally as signed monero.
+/// Represent an signed quantity of Wownero, internally as signed Wownero.
 ///
 /// The [`SignedAmount`] type can be used to express Wownero amounts that supports arithmetic and
 /// conversion to various denominations.
@@ -509,7 +509,7 @@ impl SignedAmount {
     pub const ZERO: SignedAmount = SignedAmount(0);
     /// Exactly one Dust.
     pub const ONE_DUST: SignedAmount = SignedAmount(1);
-    /// Exactly one monero.
+    /// Exactly one Wownero.
     pub const ONE_WOW: SignedAmount = SignedAmount(100_000_000_000);
 
     /// Create an [`SignedAmount`] with Dust precision and the given number of Dusts.
@@ -532,7 +532,7 @@ impl SignedAmount {
         SignedAmount(i64::min_value())
     }
 
-    /// Convert from a value expressing moneros to an [`SignedAmount`].
+    /// Convert from a value expressing Wowneros to an [`SignedAmount`].
     pub fn from_wow(wow: f64) -> Result<SignedAmount, ParsingError> {
         SignedAmount::from_float_in(wow, Denomination::Wownero)
     }

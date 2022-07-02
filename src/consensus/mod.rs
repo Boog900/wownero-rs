@@ -1,6 +1,8 @@
-// Rust Monero Library
+// Rust Wownero Library
 // Written in 2019-2022 by
-//   Monero Rust Contributors
+//    Monero Rust Contributors
+// Adapted to Wownero in 2022 by
+//    Boog900
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -13,9 +15,9 @@
 // copies or substantial portions of the Software.
 //
 
-//! Consensus encoding and decoding as defined by the Monero format.
+//! Consensus encoding and decoding as defined by the Wownero format.
 //!
-//! This module defines traits and functions which are needed to conform to Monero consensus
+//! This module defines traits and functions which are needed to conform to Wownero consensus
 //! encoding.
 //!
 //! ## Encode module
