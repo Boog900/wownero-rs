@@ -1,6 +1,8 @@
-// Rust Monero Library
+// Rust Wownero Library
 // Written in 2019-2022 by
-//   Monero Rust Contributors
+//    Monero Rust Contributors
+// Adapted to Wownero in 2022 by
+//    Boog900
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -16,7 +18,7 @@
 //! Transaction, transaction's prefix, inputs and outputs structures used to parse and create
 //! transactions.
 //!
-//! This module support (de)serializing Monero transaction and input/amount discovery/recovery with
+//! This module support (de)serializing Wownero transaction and input/amount discovery/recovery with
 //! private view key and public spend key (view key-pair: [`ViewPair`]).
 //!
 

@@ -1,6 +1,8 @@
-// Rust Monero Library
+// Rust Wownero Library
 // Written in 2019-2022 by
-//   Monero Rust Contributors
+//    Monero Rust Contributors
+// Adapted to Wownero in 2022 by
+//    Boog900
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +17,7 @@
 
 //! Block and block header structures.
 //!
-//! This module defines structures for manipulating Monero blocks. A block is composed of an
+//! This module defines structures for manipulating Wownero blocks. A block is composed of an
 //! [`Header`](BlockHeader), the miner [`Transaction`], and a list of transactions'
 //! [`Hash`](hash::Hash) included in the block.
 //!
@@ -263,13 +265,13 @@ mod test {
     fn test_block_ser_pre_sig() {
         // block with only the miner tx and no other transactions
         let hex = "0808d7c6ffd605b338ed21e6c09427584853b424a87eea47163e4f7e06b16ccdf50f5155430b4477be6d0002f53601ffb93601be84d6f8cdfc03029d99799f49753366da3ad742aac5085360aee627f21a38fb6d93d29ac85d335f34015b19f62f5aa43c094623de7d824e0d9ad1812654d815ad83d1a0163211b68d6b0211000000bb9b02a6000000000100000101000000";
-        // blockhashing blob for above block as accepted by monero
+        // blockhashing blob for above block as accepted by Wownero
         let hex_blockhash_blob="0808d7c6ffd605b338ed21e6c09427584853b424a87eea47163e4f7e06b16ccdf50f5155430b4477be6d00c8dd108dd7da2f115d6265534f4970badd6dc74cc2eec926fa50341981ad1cac01";
         let bytes = hex::decode(hex).unwrap();
         let block = deserialize::<Block>(&bytes[..]).unwrap();
         let header = serialize::<BlockHeader>(&block.header);
         let mut count = serialize::<VarInt>(&VarInt(1 + block.tx_hashes.len() as u64));
-        let mut root = block.miner_tx.hash().0.to_vec(); //tree_hash(hashes); // tree_hash.c used by monero, will be the miner tx hash here
+        let mut root = block.miner_tx.hash().0.to_vec(); //tree_hash(hashes); // tree_hash.c used by Wownero, will be the miner tx hash here
         let mut encode2 = header;
         encode2.append(&mut root);
         encode2.append(&mut count);
@@ -290,7 +292,7 @@ mod test {
         let block = deserialize::<Block>(&bytes[..]).unwrap();
         let header = serialize::<BlockHeader>(&block.header);
         let mut count = serialize::<VarInt>(&VarInt(1 + block.tx_hashes.len() as u64));
-        let mut root = block.miner_tx.hash().0.to_vec(); //tree_hash(hashes); // tree_hash.c used by monero, will be the miner tx hash here
+        let mut root = block.miner_tx.hash().0.to_vec(); //tree_hash(hashes); // tree_hash.c used by Wownero, will be the miner tx hash here
         let mut encode2 = header;
         encode2.append(&mut root);
         encode2.append(&mut count);
@@ -310,7 +312,7 @@ mod test {
         let block = deserialize::<Block>(&bytes[..]).unwrap();
         let header = serialize::<BlockHeader>(&block.header);
         let mut count = serialize::<VarInt>(&VarInt(1 + block.tx_hashes.len() as u64));
-        let mut root = block.miner_tx.hash().0.to_vec(); //tree_hash(hashes); // tree_hash.c used by monero, will be the miner tx hash here
+        let mut root = block.miner_tx.hash().0.to_vec(); //tree_hash(hashes); // tree_hash.c used by Wownero, will be the miner tx hash here
         let mut encode2 = header;
         encode2.append(&mut root);
         encode2.append(&mut count);

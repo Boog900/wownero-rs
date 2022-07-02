@@ -1,6 +1,8 @@
-// Rust Monero Library
+// Rust Wownero Library
 // Written in 2019-2022 by
-//   Monero Rust Contributors
+//    Monero Rust Contributors
+// Adapted to Wownero in 2022 by
+//    Boog900
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -13,9 +15,9 @@
 // copies or substantial portions of the Software.
 //
 
-//! Monero addresses types and helper functions.
+//! Wownero addresses types and helper functions.
 //!
-//! Support for (de)serializable Monero addresses in Monero `base58` format (not equivalent to
+//! Support for (de)serializable Wownero addresses in Wownero `base58` format (not equivalent to
 //! Bitcoin `base58` format).
 //!
 //! ## Parsing an address
@@ -65,7 +67,7 @@ pub enum Error {
     /// Generic invalid format.
     #[error("Invalid format")]
     InvalidFormat,
-    /// Monero base58 error.
+    /// Wownero base58 error.
     #[error("Base58 error: {0}")]
     Base58(#[from] base58::Error),
     /// Network error.
@@ -145,7 +147,7 @@ fixed_hash::construct_fixed_hash! {
     pub struct PaymentId(8);
 }
 
-/// A complete Monero typed address valid for a specific network.
+/// A complete Wownero typed address valid for a specific network.
 #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 pub struct Address {
     /// The network on which the address is valid and should be used.

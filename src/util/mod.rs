@@ -1,6 +1,8 @@
-// Rust Monero Library
+// Rust Wownero Library
 // Written in 2019-2022 by
-//   Monero Rust Contributors
+//    Monero Rust Contributors
+// Adapted to Wownero in 2022 by
+//    Boog900
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -32,22 +34,22 @@ use thiserror::Error;
 /// A general error code, other errors should implement conversions to/from this if appropriate.
 #[derive(Error, Debug, PartialEq)]
 pub enum Error {
-    /// Monero network error.
+    /// Wownero network error.
     #[error("Network error: {0}")]
     Network(#[from] network::Error),
-    /// Monero address error.
+    /// Wownero address error.
     #[error("Address error: {0}")]
     Address(#[from] address::Error),
-    /// Monero key error.
+    /// Wownero key error.
     #[error("Key error: {0}")]
     Key(#[from] key::Error),
-    /// Monero RingCt error.
+    /// Wownero RingCt error.
     #[error("RingCt error: {0}")]
     RingCt(#[from] ringct::Error),
-    /// Monero transaction error.
+    /// Wownero transaction error.
     #[error("Transaction error: {0}")]
     Transaction(#[from] transaction::Error),
-    /// Monero amount parsing error.
+    /// Wownero amount parsing error.
     #[error("Amount parsing error: {0}")]
     AmountParsing(#[from] amount::ParsingError),
 }

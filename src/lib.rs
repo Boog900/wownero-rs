@@ -1,6 +1,8 @@
-// Rust Monero Library
+// Rust Wownero Library
 // Written in 2019-2022 by
-//   Monero Rust Contributors
+//    Monero Rust Contributors
+// Adapted to Wownero in 2022 by
+//    Boog900
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -13,10 +15,10 @@
 // copies or substantial portions of the Software.
 //
 
-//! # Rust Monero Library
+//! # Rust Wownero Library
 //!
-//! This is a library for which supports subsets of the Monero protocol and type primitives. It is
-//! designed for Rust programs built to work with the Monero ecosystem.
+//! This is a library for which supports subsets of the Wownero protocol and type primitives. It is
+//! designed for Rust programs built to work with the Wownero ecosystem.
 //!
 //! The library currently focuses on manipulating types such as addresses, transactions, blocks and
 //! public keys, but do **NOT** implementat transaction signing. There is no immediate plan to add

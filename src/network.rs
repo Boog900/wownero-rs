@@ -1,6 +1,8 @@
-// Rust Monero Library
+// Rust Wownero Library
 // Written in 2019-2022 by
-//   Monero Rust Contributors
+//    Monero Rust Contributors
+// Adapted to Wownero in 2022 by
+//    Boog900
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -13,15 +15,15 @@
 // copies or substantial portions of the Software.
 //
 
-//! Monero networks definition and related error types.
+//! Wownero networks definition and related error types.
 //!
-//! This module defines the existing Monero networks and their associated magic bytes.
+//! This module defines the existing Wownero networks and their associated magic bytes.
 //!
 
 use crate::util::address::AddressType;
 use thiserror::Error;
 
-/// Potential errors encountered while manipulating Monero networks.
+/// Potential errors encountered while manipulating Wownero networks.
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum Error {
     /// Invalid magic network byte.
@@ -47,7 +49,7 @@ impl NetworkByte {
             NetworkByte::NotMainnet(x) => vec![x],
         }
     }
-    /// returns the amount of Netbytes for each net
+    /// Returns the amount of Netbytes for each net
     pub fn number_of_bytes(network: Network) -> usize {
         match network {
             Network::Mainnet => 2,
@@ -55,7 +57,7 @@ impl NetworkByte {
         }
     }
 }
-/// The list of the existing Monero networks.
+/// The list of the existing Wownero networks.
 ///
 /// Network implements [`Default`] and returns [`Network::Mainnet`].
 ///
@@ -73,8 +75,6 @@ pub enum Network {
 
 impl Network {
     /// Get the associated magic byte given an address type.
-    ///
-    /// **Source:** [`monero/src/cryptonote_config.h`](https://github.com/monero-project/monero/blob/159c78758af0a0af9df9a4f9ab81888f9322e9be/src/cryptonote_config.h#L190-L239)
     pub fn as_u8(self, addr_type: &AddressType) -> NetworkByte {
         use AddressType::*;
         use Network::*;
@@ -98,8 +98,6 @@ impl Network {
     }
 
     /// Recover the network type given an address magic byte.
-    ///
-    /// **Source:** [`monero/src/cryptonote_config.h`](https://github.com/monero-project/monero/blob/159c78758af0a0af9df9a4f9ab81888f9322e9be/src/cryptonote_config.h#L190-L239)
     pub fn from_u8(byte: u8) -> Result<Network, Error> {
         use Network::*;
         match byte {

@@ -1,6 +1,8 @@
-// Rust Monero Library
+// Rust Wownero Library
 // Written in 2019-2022 by
-//   Monero Rust Contributors
+//    Monero Rust Contributors
+// Adapted to Wownero in 2022 by
+//    Boog900
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -15,7 +17,7 @@
 
 //! Consensus-encodable types and errors.
 //!
-//! This represent the core logic for (de)serializing object to conform to Monero consensus.
+//! This represent the core logic for (de)serializing object to conform to Wownero consensus.
 //! Essentially, anything that must go on the -disk- or -network- must be encoded using the
 //! [`Encodable`] trait, since this data must be the same for all systems.
 //!
@@ -102,7 +104,7 @@ pub fn deserialize_partial<T: Decodable>(data: &[u8]) -> Result<(T, usize), Erro
     Ok((rv, consumed))
 }
 
-/// Extensions of [`Write`] to encode data as per Monero consensus.
+/// Extensions of [`Write`] to encode data as per Wownero consensus.
 pub trait WriteExt {
     /// Output a 64-bit uint.
     fn emit_u64(&mut self, v: u64) -> Result<(), io::Error>;
@@ -129,7 +131,7 @@ pub trait WriteExt {
     fn emit_slice(&mut self, v: &[u8]) -> Result<(), io::Error>;
 }
 
-/// Extensions of [`Read`] to decode data as per Monero consensus.
+/// Extensions of [`Read`] to decode data as per Wownero consensus.
 pub trait ReadExt {
     /// Read a 64-bit uint.
     fn read_u64(&mut self) -> Result<u64, Error>;
@@ -241,7 +243,7 @@ impl<R: Read> ReadExt for R {
 /// Data which can be encoded in a consensus-consistent way.
 ///
 /// ## Sealed trait
-/// This trait is sealed and cannot be implemented for types outside of `monero` crate. This is
+/// This trait is sealed and cannot be implemented for types outside of `Wownero` crate. This is
 /// done to ensure implementations will not fail inconsistently and so unwrapping in [`serialize`]
 /// is safe.
 #[sealed(pub(crate))]
@@ -259,7 +261,7 @@ pub trait Decodable: Sized {
     fn consensus_decode<D: io::Read>(d: &mut D) -> Result<Self, Error>;
 }
 
-/// A variable-length unsigned integer type as defined by the Monero codebase.
+/// A variable-length unsigned integer type as defined by the Wownero codebase.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(crate = "serde_crate"))]
